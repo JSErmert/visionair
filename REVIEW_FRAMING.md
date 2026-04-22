@@ -31,11 +31,35 @@ Please ultrareview this repo as a governed synthesis system, not as a generic Ne
 
 - **v1.0.13**: `synthesizeIdealUser`
 
+## How behavioral validation already works (do not duplicate)
+
+Behavioral testing is done via a **deterministic 10-persona harness external to the repo** (located outside the working tree, so reviewer agents cannot see it directly). The current calibration baseline is **3.36 / 5** across 10 user-archetype personas, fully documented in `docs/reports/v1.0.9-calibration-evaluation-pass.md`. **Read that report before forming opinions about behavioral quality, output style, or per-persona performance.** Recommendations to "add testing infrastructure" or "evaluate against more user types" should account for what already exists; the harness is the test methodology by design.
+
+## Known-deliberate decisions (do not flag)
+
+The following look like flaws but are intentional. Do not include them in findings unless you have a *new* argument against them; the prior reasoning is documented in the linked reports.
+
+- **`pathForward` reaches the blueprint as raw user text** (no synthesis applied) — deliberate per `docs/reports/v1.0.8-blueprint-synthesis-integration.md`. Action content does not benefit from state-translation; the immediate/near-term/later bucketing is the structural shape.
+- **The session step machine orders `path-forward` before `blueprint`**, which diverges from the doctrine's numbered sequence (Blueprint Reveal = 12, Guided Path Forward = 13). This is deliberate per `docs/reports/v1.0.1-stage-7-bootstrap-injection.md` — the user must input their next-steps before the blueprint can render the complete 7-section artifact.
+- **`console.log("SYNTHESIS RUNNING", seedInput)` in `app/session/flow/reflection.tsx`** — temporary verification instrumentation, scheduled for removal in the v1.0.15 polish pass per the v1.0.12 report's open follow-ups.
+- **The four synthesizers are inline in `page.tsx` rather than extracted** — deliberate decision documented in v1.0.5/v1.0.7/v1.0.11 reports; extraction is on the named roadmap as v1.0.14, intentionally sequenced *after* the fourth synthesizer (`synthesizeIdealUser`, v1.0.13) lands so the extraction captures all four patterns at once. **You may still recommend extracting earlier if you have a strong architectural reason; this brief just notes that the inline pattern is not an oversight.**
+
 ---
 
 ## The single question this review should answer
 
-**What architectural decisions in the current VisionAir codebase will be most expensive to undo later if we continue building forward from v1.0.12?**
+**Identify the 3 to 5 specific architectural decisions in the current VisionAir codebase that will be most expensive to undo later if we continue building forward from v1.0.12. Rank them.**
+
+### Definition of "expensive"
+
+For each identified decision, weight expense across these axes (not all need apply per finding):
+
+- **Code rewrite cost** — how much code has to change, how many surfaces are coupled
+- **Doctrinal erosion cost** — how much the decision drifts the runtime away from doctrine-implied behavior
+- **Future LLM migration cost** — how much the decision will have to be undone or worked around when synthesis points are upgraded to model-grade
+- **User-trust cost** — whether the decision will cause real users in v1.1.x testing to lose trust in the artifact or the experience
+
+A decision is "expensive to undo" if reversing it later would either touch many surfaces or compromise an exit-condition that has already been met.
 
 ## Please focus specifically on
 
@@ -65,9 +89,11 @@ Please ultrareview this repo as a governed synthesis system, not as a generic Ne
 
 ## Please separate findings into
 
-- **Must address before v1.0.13**
-- **Should address soon**
-- **Safe to defer**
+Use the project's own roadmap as the timing axis (rather than fuzzy "soon" / "later"):
+
+- **Must address before v1.0.13** — `synthesizeIdealUser` cannot land cleanly without this
+- **Must address before the v1.1.0 user-testing milestone** — the issue will surface when real users see the artifact, not before
+- **Safe to defer past v1.1.0** — issue is real but does not block testing or milestone integrity
 
 ## Tone
 
