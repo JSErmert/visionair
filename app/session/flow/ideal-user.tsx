@@ -1,0 +1,80 @@
+import PrimaryButton from '@/components/primary-button'
+import ScreenIntro from '@/components/screen-intro'
+import ScreenShell from '@/components/screen-shell'
+import SecondaryButton from '@/components/secondary-button'
+
+type IdealUserProps = {
+  value: string
+  onChange: (value: string) => void
+  onNext: () => void
+  onBack: () => void
+}
+
+export default function IdealUser({
+  value,
+  onChange,
+  onNext,
+  onBack,
+}: IdealUserProps) {
+  const canContinue = value.trim().length > 0
+
+  return (
+    <ScreenShell className="max-w-4xl">
+      <ScreenIntro
+        eyebrow="Aligning your opportunity"
+        title="Who most needs this first?"
+        description="We are not looking for everyone. We are looking for the first human being this should help clearly."
+      />
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <div>
+          <div className="mb-4 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+            <p className="mb-3 text-sm font-medium text-black/75">
+              Questions to think through
+            </p>
+            <ul className="space-y-2 text-sm leading-6 text-black/65">
+              <li>• Who is most affected by this problem?</li>
+              <li>• Who feels capable, but blocked?</li>
+              <li>• What are they trying to do or become?</li>
+              <li>• What are they missing right now?</li>
+              <li>• Why do you understand them especially well?</li>
+            </ul>
+          </div>
+
+          <textarea
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            rows={10}
+            placeholder="Describe the first person this should help in a grounded, human way."
+            className="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 text-base leading-7 text-black outline-none transition placeholder:text-black/35 focus:border-black/25"
+          />
+        </div>
+
+        <div>
+          <div className="h-full rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+            <p className="mb-3 text-sm font-medium text-black/75">
+              Your first ideal user
+            </p>
+
+            {canContinue ? (
+              <p className="text-base leading-7 text-black/80">{value}</p>
+            ) : (
+              <p className="text-sm leading-6 text-black/45">
+                A live draft of the person you are building for will begin to
+                take shape here.
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-8 flex items-center justify-between gap-4">
+        <SecondaryButton onClick={onBack}>Back</SecondaryButton>
+
+        <PrimaryButton onClick={onNext} disabled={!canContinue}>
+          Continue
+        </PrimaryButton>
+      </div>
+    </ScreenShell>
+  )
+}
