@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import PrimaryButton from '@/components/primary-button'
 import ScreenIntro from '@/components/screen-intro'
 import ScreenShell from '@/components/screen-shell'
 import SecondaryButton from '@/components/secondary-button'
+import { type Theme, themePatterns, detectThemes } from './structural-primitives'
 
 type ReflectionProps = {
   seedInput: string
@@ -11,9 +12,13 @@ type ReflectionProps = {
   onBack: () => void
 }
 
-// Structural Constraint Layer — first active application.
-// The reflection layer translates vague/emotional user input into
-// structured, operational meaning. Rule-based, deterministic, no LLM.
+// Structural Constraint Layer — first active application surface.
+// Theme detection primitives live in ./structural-primitives (unified in v1.0.18,
+// bug_004 resolved). Reflection-specific sentence templates (capabilityBullet,
+// patternBullet, fallbackBullets, weak-signal detectors) and emotionalTranslations
+// stay here. NOTE: this file imports directly from primitives — a bounded
+// exception to the v1.0.17 module-boundary rule, resolved when synthesizeReflection
+// is later extracted into synthesizers.ts. No other flow screen may follow this pattern.
 
 const emotionalTranslations: { re: RegExp; functional: string }[] = [
   { re: /\b(?:feel(?:s|ing)?\s+)?lost\b/i, functional: 'lacks direction and structure' },
@@ -27,42 +32,6 @@ const emotionalTranslations: { re: RegExp; functional: string }[] = [
   { re: /\bsafe\s+space\b/i, functional: 'needs a structured environment for reflection and guidance' },
   { re: /\bdon['’]?t\s+know\s+what\s+i['’]?m\s+(?:good|best)\s+at\b/i, functional: 'has real capability that has not yet been named or separated from context' },
 ]
-
-type Theme =
-  | 'structure'
-  | 'clarity'
-  | 'guiding'
-  | 'building'
-  | 'teaching'
-  | 'analysis'
-  | 'problemSolving'
-  | 'translating'
-
-const themePatterns: Record<Theme, RegExp[]> = {
-  structure: [/\bstructur/i, /\borganiz/i, /\bsystem/i, /\bframework/i, /\border(?!\s+from)\b/i],
-  clarity: [/\bclar/i, /\bclear/i, /\bfog/i, /\bunclear/i, /\bvague/i],
-  guiding: [/\bhelp/i, /\bguid/i, /\bsupport/i, /\bmentor/i, /\bcoach/i, /\badvis/i],
-  building: [/\bbuild/i, /\bcreat/i, /\bmak(?:e|ing|er)\b/i, /\bdesign/i, /\bdevelop/i, /\bprototyp/i],
-  teaching: [/\bteach/i, /\blearn/i, /\beducat/i, /\bexplain/i],
-  analysis: [/\banalyz/i, /\bpattern/i, /\bunderstand/i, /\bbreak\s*down/i, /\bfigure\s+(?:it\s+)?out/i],
-  problemSolving: [/\bfix/i, /\bsolv/i, /\bproblem/i, /\bissue/i, /\bdebug/i],
-  translating: [/\btranslat/i, /\bbridg/i, /\bconnect/i, /\binterpret/i, /\bconvert/i],
-}
-
-function detectThemes(text: string): Theme[] {
-  const scored: { theme: Theme; score: number }[] = []
-  for (const theme of Object.keys(themePatterns) as Theme[]) {
-    let score = 0
-    for (const re of themePatterns[theme]) {
-      const global = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g')
-      const matches = text.match(global)
-      if (matches) score += matches.length
-    }
-    if (score > 0) scored.push({ theme, score })
-  }
-  scored.sort((a, b) => b.score - a.score)
-  return scored.map((s) => s.theme)
-}
 
 function extractFunctionalTranslations(text: string): string[] {
   const out: string[] = []
@@ -342,6 +311,56 @@ export default function Reflection({
 
   const reflection = useMemo(() => synthesizeReflection(seedInput), [seedInput])
 
+  // v1.2.0 — LLM-dynamic follow-up question (Sonnet 4.6 via /api/question).
+  // Layered on top of the deterministic reflection above. Graceful fallback:
+  // if the API key is missing / rate-limited / returns malformed output, the
+  // dynamic block hides itself and the deterministic flow stays intact.
+  const [dynamicQuestion, setDynamicQuestion] = useState<string | null>(null)
+  const [dynamicRationale, setDynamicRationale] = useState<string | null>(null)
+  const [dynamicLoading, setDynamicLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    setDynamicLoading(true)
+    fetch('/api/question', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        currentStep: 'reflection',
+        seedInput,
+        entryPoint: '',
+        capability: [],
+        problemSpace: '',
+        idealUser: '',
+        transformationBefore: '',
+        transformationAfter: '',
+        versionOne: '',
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return
+        if (data && data.fallbackToFixed === false) {
+          setDynamicQuestion(data.dynamicQuestion)
+          setDynamicRationale(data.rationale)
+        } else {
+          setDynamicQuestion(null)
+          setDynamicRationale(null)
+        }
+      })
+      .catch(() => {
+        if (cancelled) return
+        setDynamicQuestion(null)
+        setDynamicRationale(null)
+      })
+      .finally(() => {
+        if (!cancelled) setDynamicLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [seedInput])
+
   const handleContinue = () => {
     onConfirm(response.trim())
     onNext()
@@ -367,6 +386,27 @@ export default function Reflection({
           ))}
         </ul>
       </div>
+
+      {/* v1.2.0 — LLM-dynamic follow-up. Shows when /api/question returns a
+          niche-specific question (Sonnet 4.6). Hidden silently on fallback. */}
+      {dynamicLoading && (
+        <div className="mb-6 rounded-2xl border border-black/5 bg-white p-5">
+          <p className="text-sm text-black/40">Listening to what you shared…</p>
+        </div>
+      )}
+      {!dynamicLoading && dynamicQuestion && (
+        <div className="mb-6 rounded-2xl border border-black/15 bg-white p-5">
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-black/45">
+            A more specific question for you
+          </p>
+          <p className="text-base leading-7 text-black">{dynamicQuestion}</p>
+          {dynamicRationale && (
+            <p className="mt-3 text-xs italic text-black/50">
+              {dynamicRationale}
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="mb-6">
         <p className="text-base font-medium text-black">Does this feel accurate?</p>

@@ -1,7 +1,9 @@
+import { useMemo } from 'react'
 import PrimaryButton from '@/components/primary-button'
 import ScreenIntro from '@/components/screen-intro'
 import ScreenShell from '@/components/screen-shell'
 import SecondaryButton from '@/components/secondary-button'
+import { synthesizeVersionOne } from './synthesizers'
 
 type VersionOneProps = {
   value: string
@@ -17,6 +19,7 @@ export default function VersionOne({
   onBack,
 }: VersionOneProps) {
   const canContinue = value.trim().length > 0
+  const bullets = useMemo(() => synthesizeVersionOne(value), [value])
 
   return (
     <ScreenShell>
@@ -51,7 +54,13 @@ export default function VersionOne({
         </p>
 
         {canContinue ? (
-          <p className="text-base leading-7 text-black/80">{value}</p>
+          <ul className="space-y-2">
+            {bullets.map((bullet, i) => (
+              <li key={i} className="text-base leading-7 text-black/80">
+                • {bullet}
+              </li>
+            ))}
+          </ul>
         ) : (
           <p className="text-sm leading-6 text-black/45">
             A grounded version-one statement will begin to take shape here.

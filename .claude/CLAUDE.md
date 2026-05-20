@@ -54,6 +54,7 @@ Claude must treat the following files as active governing references:
 - `docs/screen-copy.md`
 - `docs/wireframe-spec.md`
 - `docs/governance-principles.md`
+- `docs/v1-1-0-completion-guidance.md` — terminal-alignment directive for v1.0.23 + v1.0.24 + v1.1.0: names the six v1.1.0 readiness conditions, locks v1.0.24 weighting signals (repetition, emphasis language, specificity, domain keywords), and freezes the final system-purpose framing; doctrine-extension, not roadmap supersession (v1.0.20 state authoritative)
 
 ## AirFlow Layer
 - `docs/airflow-closed-loop-bootstrap-doctrine.md`
@@ -63,7 +64,30 @@ Claude must treat the following files as active governing references:
 - `.claude/repo-growth-map.md`
 - `.claude/repo-initialization.md`
 
+## Contract Layer
+- `docs/report-contract.md` — governs when and how formal reports are written
+- `docs/structural-constraint-layer.md` — governs the shape of synthesis output (no raw emotional echo, no therapy mirror, translate-to-operational)
+- `docs/highest-leverage-move-contract.md` — governs selection of the single next move; mandates State → Move → Step → Why → What-Not-To-Do block on every reportable pass
+- `docs/prompt-artifact-contract.md` — governs how execution prompts are sealed and handed off; activates in prompt-generation mode on invocations like "Create sealed execution artifact for vX.Y.Z" or "Enter prompt-generation mode for vX.Y.Z"
+- `docs/contract-authority-and-supersession.md` — governs how artifacts and contracts override prior system-state decisions; mandates explicit identify + declare + rationale + new system-state entry whenever a prior authority is overridden (adopted v1.0.20)
+- `docs/artifact-refinement-contract.md` — governs pre-execution refinement of sealed artifacts; mandates memo-pass → re-seal → execute loop; establishes Instruction Assimilation Layer for promoting memo-pass insights into CLAUDE.md (adopted v1.0.19, re-sealed)
+
+These six contracts compose. All six must operate together on every governed pass.
+
 If any implementation choice conflicts with these files, Claude must follow the governing references.
+
+## Milestone State
+**v1.1.0 REACHED 2026-04-24; v1.1.3 ROADMAP REALIGNMENT ADOPTED 2026-04-27.** Authoritative system-state entry: `docs/system-state/v1.1.3-roadmap-realignment-adopted.md` (supersedes `v1.1.0-user-testing-milestone-reached.md` per CASS §§1–4).
+
+**Optimization target:** a coherent, high-signal, actionable strategy that can be saved, revisited, and acted on.
+
+**Completion criterion:** "the user feels they have a clear, actionable path they can actually begin building." Section-level structural correctness is necessary but no longer sufficient.
+
+**Authoritative roadmap:**
+- v1.1.3 — deterministic lane derivation (next code pass)
+- v1.1.4 — strategy compression output
+
+**Hard stops:** no further indefinite vocabulary expansion; no LLM yet.
 
 ---
 

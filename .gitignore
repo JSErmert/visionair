@@ -1,3 +1,112 @@
+# dependencies
 node_modules/
+.pnp
+.pnp.js
+jspm_packages/
+
+# build outputs
 .next/
+out/
+build/
+dist/
+.turbo/
+
+# caches
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+.next/cache/
+.npm
+
+# env / secrets — NEVER COMMIT
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+*.env.local
+*.env.*.local
+
+# api keys / tokens — defensive against the "key in plaintext" footgun
+*api-key*
+*api_key*
+*apikey*
+*.key
+secrets/
+.secrets/
+
+# debug / logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+lerna-debug.log*
+
+# testing artifacts
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+*.lcov
+
+# python (if any helper scripts)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.bak
+*.backup
+*.orig
+.history/
+
+# OS
 .DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts.bak
+
+# next.js / vercel
+.vercel
+.next/trace
+
+# AI assistant working files (per-developer; not shared)
+.cursor/
+.windsurf/
+.aider*
+.claude/projects/
+.claude/settings.local.json
+ai-notes/
+
+# local-only scratch
+scratch/
+.scratch/
+NOTES.local.md
+TODO.local.md
+*.local.md
+local-only/
+tmp/
+.tmp/
+
+# archives / large temp files (don't commit by default)
+*.tar.gz
+*.tgz
+*.zip
+*.7z

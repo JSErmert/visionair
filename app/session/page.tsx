@@ -1,6 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+
+import {
+  readActiveDraft,
+  writeActiveDraft,
+  clearActiveDraft,
+  readSavedBlueprintIndex,
+  appendSavedBlueprint,
+  deleteSavedBlueprint,
+  findSavedBlueprint,
+  isResumableActiveDraft,
+  type SavedBlueprint,
+} from './persistence'
 
 // Flow Screens
 import Welcome from './flow/welcome'
@@ -10,15 +22,22 @@ import Reflection from './flow/reflection'
 import Capability from './flow/capability'
 import ProblemSpace from './flow/problem-space'
 import IdealUser from './flow/ideal-user'
-import Transformation, {
+import Transformation from './flow/transformation'
+import {
+  synthesizeCapability,
+  synthesizeVersionOne,
+  synthesizeIdealUser,
   structuralizeBefore,
   structuralizeAfter,
-} from './flow/transformation'
+} from './flow/synthesizers'
+import { deriveLaneProfile, type LaneProfile } from './flow/lane-derivation'
 import OpportunityForm from './flow/opportunity-form'
 import VersionOne from './flow/version-one'
 import Blueprint from './flow/blueprint'
 import PathForward from './flow/path-forward'
+import YourNextMove from './flow/your-next-move'
 import Closing from './flow/closing'
+import { compressStrategy } from './flow/strategy-compression'
 
 // Step order
 const steps = [
@@ -34,6 +53,7 @@ const steps = [
   'version-one',
   'path-forward',
   'blueprint',
+  'your-next-move',
   'closing',
 ] as const
 
@@ -43,7 +63,7 @@ type EntryPoint = 'strength' | 'problem' | 'idea' | 'direction' | 'unsure' | ''
 type ProblemSpaceValue = 'structure' | 'guidance' | 'opportunity' | ''
 type OpportunityFormValue = 'platform' | 'tool' | 'service' | 'hybrid' | 'learning' | ''
 
-type SessionState = {
+export type SessionState = {
   entryPoint: EntryPoint
   seedInput: string
   reflection: string
@@ -83,376 +103,9 @@ function formatCapability(capability: string[]) {
   return capability.filter(Boolean).join(' ')
 }
 
-// Capability synthesizer (v1.0.11). Decoupled from synthesizeReflection.
-// Produces capability statements about what the user can reliably do for
-// someone else, never reflection-style meta-commentary about the input.
-// Deterministic, regex-based, no LLM. Inline per pass scope.
-
-type CapabilityTheme =
-  | 'structure'
-  | 'clarity'
-  | 'guiding'
-  | 'building'
-  | 'teaching'
-  | 'analysis'
-  | 'problemSolving'
-  | 'translating'
-
-const capabilityThemePatterns: Record<CapabilityTheme, RegExp[]> = {
-  structure: [/\bstructur/i, /\borganiz/i, /\bsystem/i, /\bframework/i, /\border\b/i, /\bscope/i, /\bplan/i],
-  clarity: [/\bclar/i, /\bclear/i, /\bfog/i, /\bunclear/i, /\bvague/i],
-  guiding: [/\bhelp/i, /\bguid/i, /\bsupport/i, /\bmentor/i, /\bcoach/i, /\badvis/i, /\btutor/i, /\bhold(?:ing)?\s+space\b/i, /\bpresence\b/i, /\bretreat/i, /\bsession/i, /\bworkshop/i, /\bfacilitat/i],
-  building: [/\bbuild/i, /\bcreat/i, /\bmak(?:e|ing|er)\b/i, /\bdesign/i, /\bdevelop/i, /\bship/i, /\bproduct/i, /\bprototyp/i, /\blaunch/i, /\bMRR\b/i, /\bSaaS\b/i, /\bv1\b/i],
-  teaching: [/\bteach/i, /\blearn/i, /\beducat/i, /\bexplain/i, /\btutor/i],
-  analysis: [/\banalyz/i, /\bpattern/i, /\bunderstand/i, /\bbreak\s*down/i, /\bfigure\s+(?:it\s+)?out/i, /\bdebug/i, /\btrac(?:e|ing)\b/i, /\bdiagnos/i],
-  problemSolving: [/\bfix/i, /\bsolv/i, /\bproblem/i, /\bissue/i, /\bdebug/i, /\bdysfunctional/i, /\bbroken/i, /\bbottleneck/i],
-  translating: [/\btranslat/i, /\bbridg/i, /\bconnect/i, /\binterpret/i, /\bconvert/i],
-}
-
-const capabilityTargetNouns: { re: RegExp; canonical: string }[] = [
-  { re: /\b(?:back-?end\s+)?engineers?\b|\bdevelopers?\b|\bSREs?\b/i, canonical: 'engineers' },
-  { re: /\bfounders?\b|\bentrepreneurs?\b/i, canonical: 'founders' },
-  { re: /\bstudents?\b|\bfreshm[ae]n\b/i, canonical: 'students' },
-  { re: /\bsmall\s+business(?:es)?\b|\bbusiness\s+owners?\b|\bartisans?\b|\bbakers?\b/i, canonical: 'small business owners' },
-  { re: /\bdesigners?\b/i, canonical: 'designers' },
-  { re: /\bconsultants?\b/i, canonical: 'consultants' },
-  { re: /\bcoaches?\b/i, canonical: 'coaches' },
-  { re: /\bteams?\b/i, canonical: 'teams' },
-  { re: /\bclients?\b/i, canonical: 'clients' },
-  { re: /\bcustomers?\b/i, canonical: 'customers' },
-  { re: /\bwomen\b/i, canonical: 'women' },
-  { re: /\bnontechnical\b|\bnon-?technical\b/i, canonical: 'nontechnical builders' },
-  { re: /\bbeginners?\b/i, canonical: 'beginners' },
-  { re: /\boverwhelmed\b/i, canonical: 'overwhelmed people' },
-  { re: /\bstuck\b/i, canonical: 'stuck people' },
-  { re: /\b(?:feel(?:s|ing)?\s+)?lost\b/i, canonical: 'people who feel lost' },
-  { re: /\b(?:feel(?:s|ing)?\s+)?confused\b/i, canonical: 'confused people' },
-  { re: /\bscattered\b/i, canonical: 'scattered or fragmented people' },
-  { re: /\b(?:feel(?:s|ing)?\s+)?anxious\b|\bburned[\s-]?out\b|\bburn[\s-]?out\b/i, canonical: 'burned-out or anxious people' },
-  { re: /\bdisconnected\b/i, canonical: 'disconnected people' },
-]
-
-const capabilityActionByTheme: Record<CapabilityTheme, string> = {
-  structure: 'bring scattered or unstructured situations into a more organized, usable form',
-  clarity: 'move foggy or ambiguous situations toward clarity they can act on',
-  guiding: 'move from a stuck or unsupported state toward something more workable for them',
-  building: 'turn ideas and signals into something real, shaped, and externally observable',
-  teaching: 'understand complex or unfamiliar material in usable terms',
-  analysis: 'see patterns and structure inside messy or opaque situations',
-  problemSolving: 'move broken situations toward a working state',
-  translating: 'convert unclear, complex, or emotional input into structured, operational form',
-}
-
-const capabilityStrengthByTheme: Record<CapabilityTheme, string> = {
-  structure: 'Your strength is in turning scattered material into structure others can follow.',
-  clarity: 'Your strength is in turning fog into clarity others can use.',
-  guiding: 'Your strength is in turning a stuck or unsupported moment into a workable next step for the person you are with.',
-  building: 'Your strength is in turning possibility into something real and externally testable.',
-  teaching: 'Your strength is in turning difficult material into operational understanding.',
-  analysis: 'Your strength is in making hidden structure visible so decisions become easier.',
-  problemSolving: 'Your strength is in moving broken situations toward working ones with less wasted effort.',
-  translating: 'Your strength is in interpreting complex or emotional input and converting it into operational form.',
-}
-
-const capabilityValueByTheme: Record<CapabilityTheme, string> = {
-  structure: 'The value you create is structure where there was previously fragmentation.',
-  clarity: 'The value you create is named clarity where there was previously fog.',
-  guiding: 'The value you create is forward movement for someone who could not access it on their own.',
-  building: 'The value you create is something real, shipped, and observable where there was previously only possibility.',
-  teaching: 'The value you create is operational understanding where there was previously confusion.',
-  analysis: 'The value you create is visible structure inside what previously looked like noise.',
-  problemSolving: 'The value you create is a working state where there was previously a broken one.',
-  translating: 'The value you create is structured form where there was previously emotional or unclear input.',
-}
-
-function detectCapabilityThemes(text: string): CapabilityTheme[] {
-  const scored: { theme: CapabilityTheme; score: number }[] = []
-  for (const theme of Object.keys(capabilityThemePatterns) as CapabilityTheme[]) {
-    let score = 0
-    for (const re of capabilityThemePatterns[theme]) {
-      const g = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g')
-      const matches = text.match(g)
-      if (matches) score += matches.length
-    }
-    if (score > 0) scored.push({ theme, score })
-  }
-  scored.sort((a, b) => b.score - a.score)
-  return scored.map((s) => s.theme)
-}
-
-function detectCapabilityTargets(text: string): string[] {
-  const found: string[] = []
-  const seen = new Set<string>()
-  for (const { re, canonical } of capabilityTargetNouns) {
-    if (re.test(text) && !seen.has(canonical)) {
-      seen.add(canonical)
-      found.push(canonical)
-    }
-  }
-  return found
-}
-
-function synthesizeCapability(answers: string[]): string[] {
-  const joined = answers.filter(Boolean).join(' ').trim()
-
-  if (!joined) {
-    return [
-      'Capability has not yet been named in operational terms — the current answers point to a real pattern but it has not been translated into a repeatable external capability.',
-      'What matters now is identifying one specific person who benefits and one specific thing that becomes easier because of this person.',
-      'Once that pair is named, the capability becomes externally describable and the rest of the blueprint can build on it.',
-    ]
-  }
-
-  const themes = detectCapabilityThemes(joined)
-  const targets = detectCapabilityTargets(joined)
-
-  const bullets: string[] = []
-
-  // Bullet 1 — capability statement: target + action
-  if (themes.length > 0) {
-    const target = targets[0] ?? 'others'
-    bullets.push(`You can reliably help ${target} ${capabilityActionByTheme[themes[0]]}.`)
-  } else {
-    bullets.push(
-      'You can reliably produce real value for the people you work with — the specific shape of that value has not yet been named in operational terms.'
-    )
-  }
-
-  // Bullet 2 — strength statement (second theme if distinct, else target-paired phrasing)
-  if (themes.length > 1) {
-    bullets.push(capabilityStrengthByTheme[themes[1]])
-  } else if (themes.length === 1 && targets.length > 1) {
-    bullets.push(
-      `Your work tends to land specifically with ${targets[0]} and ${targets[1]} — the kind of person whose situation rewards the value you create.`
-    )
-  } else if (themes.length === 1) {
-    bullets.push(capabilityStrengthByTheme[themes[0]])
-  } else {
-    bullets.push(
-      'Your strength is in producing externally observable change for the people you work with, not just internal insight for yourself.'
-    )
-  }
-
-  // Bullet 3 — value statement (top theme)
-  if (themes.length > 0) {
-    bullets.push(capabilityValueByTheme[themes[0]])
-  } else {
-    bullets.push(
-      'The value you create is real but is still phrased experientially — naming it operationally is the next move.'
-    )
-  }
-
-  // Bullet 4 — only when content is rich (3+ themes OR 2+ targets)
-  if (themes.length >= 3 || targets.length >= 2) {
-    const secondaryTarget = targets.length > 1 ? targets[1] : (targets[0] ?? 'people in that situation')
-    bullets.push(
-      `The pattern is recognizable across multiple situations — when ${secondaryTarget} encounter the kind of problem you address, you tend to be the person who turns it into a usable next step.`
-    )
-  }
-
-  return bullets
-}
-
-// VersionOne synthesizer (v1.0.12). Build-definition surface — produces
-// concrete form/scope/proof bullets, not after-state structural fallback.
-// Reuses detectCapabilityTargets from above. Inline per pass scope.
-
-const versionOneFormPatterns: { re: RegExp; canonical: string }[] = [
-  // Multi-word forms first so they match before single-word fallbacks
-  { re: /\bweb\s+app\b/i, canonical: 'web app' },
-  { re: /\bmobile\s+app\b/i, canonical: 'mobile app' },
-  { re: /\bemail\s+course\b/i, canonical: 'email course' },
-  { re: /\bemail\s+sequence\b/i, canonical: 'email sequence' },
-  { re: /\bonboarding\s+(?:flow|sequence)\b/i, canonical: 'onboarding flow' },
-  { re: /\bintake\s+(?:flow|form)\b/i, canonical: 'intake flow' },
-  { re: /\bnotion\s+template\b/i, canonical: 'Notion template' },
-  { re: /\blanding\s+page\b/i, canonical: 'landing page' },
-  { re: /\b(?:figma\s+)?prototype\b/i, canonical: 'prototype' },
-  { re: /\bbrand\s+sprint\b/i, canonical: 'brand sprint' },
-  // Single-word forms
-  { re: /\bCLI\b/i, canonical: 'CLI' },
-  { re: /\bSDK\b/i, canonical: 'SDK' },
-  { re: /\bAPI\b/i, canonical: 'API' },
-  { re: /\bdashboard\b/i, canonical: 'dashboard' },
-  { re: /\bplatform\b/i, canonical: 'platform' },
-  { re: /\btemplate\b/i, canonical: 'template' },
-  { re: /\bcourse\b/i, canonical: 'course' },
-  { re: /\bworkshop\b/i, canonical: 'workshop' },
-  { re: /\bsprint\b/i, canonical: 'sprint' },
-  { re: /\bservice\b/i, canonical: 'service' },
-  { re: /\bsession\b/i, canonical: 'session' },
-  { re: /\bgroup\b/i, canonical: 'group' },
-  { re: /\bcohort\b/i, canonical: 'cohort' },
-  { re: /\bnewsletter\b/i, canonical: 'newsletter' },
-  { re: /\bplaybook\b/i, canonical: 'playbook' },
-  { re: /\bguide\b/i, canonical: 'guide' },
-  { re: /\bframework\b/i, canonical: 'framework' },
-  { re: /\bprogram\b/i, canonical: 'program' },
-  { re: /\bsite\b/i, canonical: 'site' },
-  { re: /\bpage\b/i, canonical: 'page' },
-  { re: /\bdiagnostic\b/i, canonical: 'diagnostic' },
-  { re: /\bengagement\b/i, canonical: 'engagement' },
-  { re: /\baudit\b/i, canonical: 'audit' },
-  { re: /\btool\b/i, canonical: 'tool' },
-  { re: /\bapp\b/i, canonical: 'app' },
-]
-
-const versionOneActionVerbs: { re: RegExp; verb: string }[] = [
-  { re: /\bguid(?:e|es|ed|ing)\b/i, verb: 'guides' },
-  { re: /\bstructur(?:e|es|ed|ing)\b/i, verb: 'structures' },
-  { re: /\bteach(?:es|ing)?\b/i, verb: 'teaches' },
-  { re: /\borganiz(?:e|es|ed|ing)\b/i, verb: 'organizes' },
-  { re: /\bdraft(?:s|ed|ing)?\b/i, verb: 'drafts' },
-  { re: /\btrack(?:s|ed|ing)?\b/i, verb: 'tracks' },
-  { re: /\bconnect(?:s|ed|ing)?\b/i, verb: 'connects' },
-  { re: /\bautomat(?:e|es|ed|ing)\b/i, verb: 'automates' },
-  { re: /\bhelp(?:s|ed|ing)?\b/i, verb: 'helps' },
-  { re: /\bwalk(?:s|ed|ing)?\s+through\b/i, verb: 'walks through' },
-  { re: /\bgenerat(?:e|es|ed|ing)\b/i, verb: 'generates' },
-  { re: /\bingest(?:s|ed|ing)?\b/i, verb: 'ingests' },
-  { re: /\boutput(?:s|ted|ting)?\b/i, verb: 'outputs' },
-  { re: /\btranslat(?:e|es|ed|ing)\b/i, verb: 'translates' },
-  { re: /\bevaluat(?:e|es|ed|ing)\b/i, verb: 'evaluates' },
-  { re: /\bsort(?:s|ed|ing)?\b/i, verb: 'sorts' },
-  { re: /\bcompar(?:e|es|ed|ing)\b/i, verb: 'compares' },
-  { re: /\bsurfac(?:e|es|ed|ing)\b/i, verb: 'surfaces' },
-  { re: /\bmap(?:s|ped|ping)?\b/i, verb: 'maps' },
-  { re: /\bdiagnos(?:e|es|ed|ing)\b/i, verb: 'diagnoses' },
-  { re: /\bclassif(?:y|ies|ied|ying)\b/i, verb: 'classifies' },
-  { re: /\brender(?:s|ed|ing)?\b/i, verb: 'renders' },
-  { re: /\bhighlight(?:s|ed|ing)?\b/i, verb: 'highlights' },
-  { re: /\bdefin(?:e|es|ed|ing)\b/i, verb: 'defines' },
-  { re: /\bidentif(?:y|ies|ied|ying)\b/i, verb: 'identifies' },
-  { re: /\bdeliver(?:s|ed|ing)?\b/i, verb: 'delivers' },
-  { re: /\breview(?:s|ed|ing)?\b/i, verb: 'reviews' },
-]
-
-const verbsThatTakeDirectObject = new Set([
-  'helps', 'guides', 'teaches', 'walks through', 'mentors', 'coaches', 'reviews',
-])
-
-const versionOneFallback = [
-  'Version one has not yet been named in terms of what it is.',
-  'The current input points toward a real build, but the form and boundary are still undefined.',
-  'What it proves first is whether one concrete form and one clear boundary can be named and tested.',
-]
-
-function detectVersionOneForm(text: string): string | null {
-  for (const { re, canonical } of versionOneFormPatterns) {
-    if (re.test(text)) return canonical
-  }
-  return null
-}
-
-function detectVersionOneAction(text: string): string | null {
-  let best: { verb: string; index: number } | null = null
-  for (const { re, verb } of versionOneActionVerbs) {
-    const m = text.search(new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g'))
-    if (m >= 0 && (best === null || m < best.index)) {
-      best = { verb, index: m }
-    }
-  }
-  return best?.verb ?? null
-}
-
-function detectVersionOneScope(text: string): string | null {
-  // Multiple "no X" / "without X" exclusions take priority — they indicate deliberate scope choices
-  const exclusions: string[] = []
-  const exclusionRe = /\b(?:no|without)\s+([a-z][a-z]*(?:[\s-]+[a-z][a-z]+)?)\b/gi
-  let m: RegExpExecArray | null
-  while ((m = exclusionRe.exec(text)) !== null) {
-    const term = m[1].toLowerCase().replace(/\s+/g, ' ')
-    if (!['one', 'need', 'longer', 'sense', 'idea', 'matter'].includes(term)) {
-      exclusions.push(term)
-    }
-  }
-  if (exclusions.length > 0) {
-    const list = exclusions.slice(0, 3).map((e) => `no ${e}`).join(', ')
-    return list
-  }
-
-  // Duration windows
-  const durMatch = text.match(/\b(\d+)[\s-]*(week|day|month|year)s?\b/i)
-  if (durMatch) return `a ${durMatch[1]}-${durMatch[2]} window`
-
-  // Participant cap
-  const capMatch = text.match(/\bcap(?:ped)?\s+at\s+(\d+)/i)
-  if (capMatch) return `a deliberate cap at ${capMatch[1]} participants`
-
-  // Fixed scope/price
-  if (/\bfixed\s+(?:price|scope|cost)\b/i.test(text)) return 'a fixed scope and price'
-
-  // Static scope phrases
-  if (/\bsmallest\s+meaningful\b/i.test(text)) return 'the smallest meaningful version'
-  if (/\bsmallest\b/i.test(text)) return 'the smallest possible version'
-  if (/\bsimplest\b/i.test(text)) return 'the simplest possible version'
-  if (/\bminimum\b|\bminimal\b/i.test(text)) return 'a minimum viable version'
-  if (/\blightweight\b/i.test(text)) return 'a deliberately lightweight version'
-  if (/\bv1\b/i.test(text)) return 'a v1 release rather than a full product'
-  if (/\bonly\b|\bjust\b/i.test(text)) return 'a deliberately narrow surface'
-  if (/\bbounded\b|\blimited\b/i.test(text)) return 'an explicitly bounded scope'
-
-  return null
-}
-
-function composeVersionOneFormBullet(
-  form: string | null,
-  action: string | null,
-  target: string | null
-): string {
-  if (form && action && target) {
-    if (verbsThatTakeDirectObject.has(action)) {
-      return `Version one is a ${form} that ${action} ${target}.`
-    }
-    return `Version one is a ${form} that ${action} for ${target}.`
-  }
-  if (form && target) return `Version one is a ${form} for ${target}.`
-  if (form) return `Version one is a ${form}.`
-  if (target) return `Version one is a focused build aimed at ${target}.`
-  return 'Version one is a build whose form has not yet been explicitly named.'
-}
-
-function composeVersionOneScopeBullet(scope: string | null): string {
-  if (!scope) {
-    return 'Scope is not yet explicitly bounded — naming what is deliberately excluded is the next move.'
-  }
-  if (scope.startsWith('no ')) {
-    return `Scope is intentionally bounded by what is excluded: ${scope}.`
-  }
-  return `Scope is intentionally bounded to ${scope}.`
-}
-
-function composeVersionOneProofBullet(text: string): string {
-  if (/\bvalidat/i.test(text)) {
-    return 'What it proves is whether the value is real enough to validate before further investment.'
-  }
-  if (/\bpay\b|\bcharge\b|\bprice\b|\$\d/i.test(text)) {
-    return 'What it proves is whether real users will actually pay for this version.'
-  }
-  if (/\b(?:see\s+if|test\s+(?:if|whether)|test\s+with)\b/i.test(text)) {
-    return 'What it proves is whether the smallest version of the offer matches what users actually need.'
-  }
-  return 'What it proves is that the core transformation can happen in a real, testable form.'
-}
-
-function synthesizeVersionOne(text: string): string[] {
-  const trimmed = text.trim()
-  if (!trimmed) return versionOneFallback
-
-  const form = detectVersionOneForm(trimmed)
-  const scope = detectVersionOneScope(trimmed)
-  const action = detectVersionOneAction(trimmed)
-  const targets = detectCapabilityTargets(trimmed)
-
-  // Fallback only when neither form nor scope is detected
-  if (!form && !scope) return versionOneFallback
-
-  return [
-    composeVersionOneFormBullet(form, action, targets[0] ?? null),
-    composeVersionOneScopeBullet(scope),
-    composeVersionOneProofBullet(trimmed),
-  ]
-}
+// Synthesis layer extracted to ./flow/synthesizers.ts + ./flow/structural-primitives.ts
+// in v1.0.17. synthesizeCapability / synthesizeVersionOne / synthesizeIdealUser /
+// structuralizeBefore / structuralizeAfter are imported at the top of this file.
 
 function formatProblemSpace(problemSpace: ProblemSpaceValue) {
   switch (problemSpace) {
@@ -484,25 +137,101 @@ function formatOpportunityForm(opportunityForm: OpportunityFormValue) {
   }
 }
 
-function formatTransformation(before: string, after: string) {
+function formatTransformation(before: string, after: string, laneProfile?: LaneProfile) {
   if (!before.trim() && !after.trim()) return ''
 
-  const beforeBullets = structuralizeBefore(before).slice(0, 2)
+  const beforeBullets = structuralizeBefore(before, laneProfile).slice(0, 2)
   const afterBullets = structuralizeAfter(after).slice(0, 2)
 
   return `Before — ${beforeBullets.join(' ')} After — ${afterBullets.join(' ')}`
 }
 
+const BLUEPRINT_STEP_INDEX = steps.indexOf('blueprint')
+const YOUR_NEXT_MOVE_STEP_INDEX = steps.indexOf('your-next-move')
+const CLOSING_STEP_INDEX = steps.indexOf('closing')
+const STARTING_POINT_STEP_INDEX = steps.indexOf('starting-point')
+
 export default function SessionPage() {
   const [stepIndex, setStepIndex] = useState(0)
   const [state, setState] = useState<SessionState>(initialState)
+  const [hasMounted, setHasMounted] = useState(false)
+  const [hasDraft, setHasDraft] = useState(false)
+  const [savedBlueprints, setSavedBlueprints] = useState<SavedBlueprint[]>([])
+  // v1.1.5 — Fix 1/3/5: navigation-mode flags that gate autosave.
+  // - isViewingPastBlueprint: user opened a saved blueprint from welcome; the
+  //   reopened state must not be auto-written as a new active draft (Fix 6).
+  // - isFinalized: user clicked Finish on Your Next Move; the active draft has
+  //   been cleared and must not be re-written by the autosave effect when the
+  //   stepIndex transitions to closing (or if the user navigates back from
+  //   closing within this same session).
+  const [isViewingPastBlueprint, setIsViewingPastBlueprint] = useState(false)
+  const [isFinalized, setIsFinalized] = useState(false)
 
   const currentStep: Step = steps[stepIndex]
 
-  const next = () => {
-    if (stepIndex < steps.length - 1) {
-      setStepIndex((prev) => prev + 1)
+  // Mount-time hydration (v1.1.5 Fix 5: deterministic order).
+  // 1) Read saved blueprints first (cheap, no validation needed).
+  // 2) Read active draft, then validate its eligibility against the
+  //    completion boundary. Drafts at or beyond closing are stale finalized
+  //    artifacts — clear them and do NOT expose Resume state.
+  // 3) Set hasMounted last so the welcome UI only renders the resolved state.
+  useEffect(() => {
+    setSavedBlueprints(readSavedBlueprintIndex().blueprints)
+
+    const draft = readActiveDraft()
+    if (draft && !isResumableActiveDraft(draft, CLOSING_STEP_INDEX)) {
+      // Stale finalized draft (or any draft past the completion boundary).
+      // Clear it from storage and treat as if no draft existed.
+      clearActiveDraft()
+      setHasDraft(false)
+    } else {
+      setHasDraft(draft !== null)
     }
+
+    setHasMounted(true)
+  }, [])
+
+  // Per-keystroke autosave (v1.1.1 T3: intentional, no debounce; v1.1.5 Fix 1+6
+  // additions). Skip autosave when:
+  // - not yet hydrated (avoid SSR mismatch)
+  // - on the welcome step (nothing to save before the user begins)
+  // - on or past the closing step (session is over; preserves clearActiveDraft
+  //   from the finalization branch of next())
+  // - the user is viewing a previously-saved blueprint (read-only mode; do not
+  //   re-create a "session in progress" artifact for past content)
+  // - the session has been finalized in this render lifecycle
+  useEffect(() => {
+    if (!hasMounted) return
+    if (stepIndex === 0) return
+    if (stepIndex >= CLOSING_STEP_INDEX) return
+    if (isViewingPastBlueprint) return
+    if (isFinalized) return
+    writeActiveDraft(state, stepIndex)
+  }, [state, stepIndex, hasMounted, isViewingPastBlueprint, isFinalized])
+
+  const next = () => {
+    if (stepIndex >= steps.length - 1) return
+
+    // v1.1.5 Fix 1: Your Next Move → closing is the SINGLE authoritative
+    // session finalization boundary. At this exact transition:
+    //   1. append the completed blueprint to the saved index
+    //   2. clear the active draft from storage
+    //   3. mark in-memory state as finalized (suppresses any subsequent
+    //      autosave from re-writing a stale draft when stepIndex advances
+    //      to closing)
+    //   4. set hasDraft=false so the welcome screen does not show Resume
+    //      if the user navigates back via restart()
+    // Skipped when viewing a past blueprint — append-only-on-edit duplication
+    // is intentionally avoided in that mode (Fix 6).
+    if (stepIndex === YOUR_NEXT_MOVE_STEP_INDEX && !isViewingPastBlueprint) {
+      const saved = appendSavedBlueprint(state)
+      setSavedBlueprints((prev) => [...prev, saved])
+      clearActiveDraft()
+      setHasDraft(false)
+      setIsFinalized(true)
+    }
+
+    setStepIndex((prev) => prev + 1)
   }
 
   const back = () => {
@@ -512,8 +241,50 @@ export default function SessionPage() {
   }
 
   const restart = () => {
+    clearActiveDraft()
+    setHasDraft(false)
+    setIsViewingPastBlueprint(false)
+    setIsFinalized(false)
     setState(initialState)
     setStepIndex(0)
+  }
+
+  const resumeDraft = () => {
+    const draft = readActiveDraft()
+    if (!draft) return
+    setState(draft.state)
+    setStepIndex(draft.stepIndex)
+    setHasDraft(false)
+    setIsViewingPastBlueprint(false)
+    setIsFinalized(false)
+  }
+
+  // T5: clear draft AND jump to Starting Point (stepIndex 1), not Welcome (0).
+  // The user has already seen the welcome banner by interacting with it.
+  const startFresh = () => {
+    clearActiveDraft()
+    setHasDraft(false)
+    setIsViewingPastBlueprint(false)
+    setIsFinalized(false)
+    setState(initialState)
+    setStepIndex(STARTING_POINT_STEP_INDEX)
+  }
+
+  // v1.1.5 Fix 6: opening a past blueprint enters a read-only-ish view mode.
+  // Autosave is suppressed (see autosave effect guard on isViewingPastBlueprint)
+  // so reopening + refreshing does not recreate a "session in progress."
+  const openSavedBlueprint = (id: string) => {
+    const found = findSavedBlueprint(id)
+    if (!found) return
+    setState(found.state)
+    setStepIndex(BLUEPRINT_STEP_INDEX)
+    setIsViewingPastBlueprint(true)
+    setIsFinalized(false)
+  }
+
+  const removeSavedBlueprint = (id: string) => {
+    deleteSavedBlueprint(id)
+    setSavedBlueprints((prev) => prev.filter((blueprint) => blueprint.id !== id))
   }
 
   const updateState = (updates: Partial<SessionState>) => {
@@ -534,34 +305,74 @@ export default function SessionPage() {
   }
 
   // Blueprint sources of truth: synthesized outputs, not raw user input.
-  // - capability: synthesized reflection over the joined capability answers
+  // Structured synthesis output is preserved as string[] end-to-end — no
+  // `.join(' ')` flattening at the artifact boundary (v1.0.14).
+  // - capability: synthesized via synthesizeCapability (returns string[])
   // - problemSpace: already structured (radio → fixed phrase)
-  // - idealUser: structuralized via the "before" translator (state-of-user content)
+  // - idealUser: synthesized via synthesizeIdealUser (v1.0.16) — returns
+  //   string[]; empty input returns [] so SectionCard renders the
+  //   "Still taking shape." empty state
   // - transformation: already synthesized via formatTransformation (v1.0.7)
   // - opportunityForm: already structured (radio → fixed phrase)
-  // - versionOne: structuralized via the "after" translator (resolved-state content)
+  // - versionOne: synthesized via synthesizeVersionOne (v1.0.12)
   // - pathForward: action content, intentionally not run through state translators
   //   (would replace specific actions with generic state fallbacks); the
   //   immediate/near-term/later bucketing is itself the structural shape
+  // - reflection: user's verbatim refinement/recalibration text from the
+  //   Reflection screen (v1.0.22); renders as an italicized footer block on
+  //   the blueprint when non-empty and not the literal 'yes' confirmation.
+  //   Synthesized reflection bullets live in the Reflection screen, not the
+  //   blueprint — this field carries only the user's typed correction if they
+  //   chose "Partly — refine it" or "Not quite — let me clarify"
+  // v1.1.3: derive lane profile once per render from the joined session input.
+  // High-confidence lanes drive lane-aware fallback in the four lane-consuming
+  // synthesizers below; low/medium confidence drops through to existing primary
+  // detection paths byte-identically.
+  const laneProfile = deriveLaneProfile(state)
+
   const blueprintData = {
-    capability: synthesizeCapability(state.capability).join(' '),
+    capability: synthesizeCapability(state.capability, laneProfile),
     problemSpace: formatProblemSpace(state.problemSpace),
-    idealUser: state.idealUser.trim()
-      ? structuralizeBefore(state.idealUser).join(' ')
-      : '',
+    idealUser: synthesizeIdealUser(state.idealUser, laneProfile),
     transformation: formatTransformation(
       state.transformationBefore,
-      state.transformationAfter
+      state.transformationAfter,
+      laneProfile
     ),
     opportunityForm: formatOpportunityForm(state.opportunityForm),
-    versionOne: synthesizeVersionOne(state.versionOne).join(' '),
+    versionOne: synthesizeVersionOne(state.versionOne, laneProfile),
     pathForward: state.pathForward,
+    reflection: state.reflection,
+    laneProfile,
   }
+
+  // v1.1.4: deterministic compression of the blueprint into a single
+  // actionable strategy. Decision extraction, not summarization.
+  const strategy = compressStrategy(
+    {
+      capability: blueprintData.capability,
+      problemSpace: blueprintData.problemSpace,
+      idealUser: blueprintData.idealUser,
+      versionOne: blueprintData.versionOne,
+      laneProfile,
+    },
+    state
+  )
 
   const renderStep = () => {
     switch (currentStep) {
       case 'welcome':
-        return <Welcome onNext={next} />
+        return (
+          <Welcome
+            onNext={next}
+            hasDraft={hasMounted && hasDraft}
+            savedBlueprints={hasMounted ? savedBlueprints : []}
+            onResumeDraft={resumeDraft}
+            onStartFresh={startFresh}
+            onOpenBlueprint={openSavedBlueprint}
+            onRemoveBlueprint={removeSavedBlueprint}
+          />
+        )
 
       case 'starting-point':
         return (
@@ -683,8 +494,30 @@ export default function SessionPage() {
           />
         )
 
-      case 'closing':
-        return <Closing onRestart={restart} />
+      case 'your-next-move':
+        return (
+          <YourNextMove
+            data={strategy}
+            onNext={next}
+            onBack={back}
+          />
+        )
+
+      case 'closing': {
+        // v1.2.0 Beta-1.0 — Closing screen now offers a Download button for
+        // the just-finalized blueprint. Pull label/savedAt from the most
+        // recently appended saved blueprint (if any); state is still the live
+        // in-memory state by construction at this step.
+        const latest = savedBlueprints[savedBlueprints.length - 1]
+        return (
+          <Closing
+            onRestart={restart}
+            state={state}
+            label={latest?.label}
+            savedAt={latest?.savedAt}
+          />
+        )
+      }
 
       default:
         return null

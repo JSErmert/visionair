@@ -1,11 +1,24 @@
 import PrimaryButton from '@/components/primary-button'
+import SecondaryButton from '@/components/secondary-button'
 import ScreenShell from '@/components/screen-shell'
+import type { SessionState } from '../page'
+import { downloadBlueprint } from './export-markdown'
 
 type ClosingProps = {
   onRestart?: () => void
+  state?: SessionState
+  label?: string
+  savedAt?: number
 }
 
-export default function Closing({ onRestart }: ClosingProps) {
+export default function Closing({ onRestart, state, label, savedAt }: ClosingProps) {
+  const canDownload = !!state
+
+  const handleDownload = () => {
+    if (!state) return
+    downloadBlueprint({ state, label, savedAt })
+  }
+
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center text-center">
       <ScreenShell className="max-w-2xl p-10">
@@ -30,8 +43,22 @@ export default function Closing({ onRestart }: ClosingProps) {
           </p>
         </div>
 
-        {onRestart && (
-          <PrimaryButton onClick={onRestart}>Begin again</PrimaryButton>
+        <div className="flex flex-col items-center gap-3">
+          {canDownload && (
+            <PrimaryButton onClick={handleDownload}>
+              Download your blueprint
+            </PrimaryButton>
+          )}
+          {onRestart && (
+            <SecondaryButton onClick={onRestart}>Begin again</SecondaryButton>
+          )}
+        </div>
+
+        {canDownload && (
+          <p className="mt-6 text-xs text-black/45">
+            Saves as a Markdown file you can keep, share, or feed into your
+            next tool.
+          </p>
         )}
       </ScreenShell>
     </div>

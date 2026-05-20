@@ -2,19 +2,30 @@ import PrimaryButton from '@/components/primary-button'
 import ScreenIntro from '@/components/screen-intro'
 import ScreenShell from '@/components/screen-shell'
 import SecondaryButton from '@/components/secondary-button'
+import type { LaneProfile } from './lane-derivation'
 
 type BlueprintData = {
-  capability: string
+  capability: string[]
   problemSpace: string
-  idealUser: string
+  idealUser: string[]
   transformation: string
   opportunityForm: string
-  versionOne: string
+  versionOne: string[]
   pathForward: {
     immediate: string
     nearTerm: string
     later: string
   }
+  // v1.0.22: user's verbatim refinement/recalibration text from the Reflection
+  // screen. Renders as italicized footer block when non-empty and not the
+  // literal 'yes' confirmation. User-authored content, explicitly distinct
+  // from synthesized sections (SCL Rule 5 preservation; Rule 1 not engaged
+  // because this is user's own words, not synthesizer output).
+  reflection: string
+  // v1.1.3: optional lane profile produced by deriveLaneProfile (page.tsx).
+  // Carried on BlueprintData for v1.1.4 strategy-compression downstream
+  // consumption. Not rendered in v1.1.3.
+  laneProfile?: LaneProfile
 }
 
 type BlueprintProps = {
@@ -28,16 +39,31 @@ function SectionCard({
   content,
 }: {
   title: string
-  content: string
+  content: string | string[]
 }) {
+  const isArray = Array.isArray(content)
+  const hasContent = isArray ? content.length > 0 : content.trim().length > 0
+
   return (
     <div className="rounded-2xl border border-black/10 bg-white p-5">
       <p className="mb-2 text-sm font-medium tracking-wide text-black/55">
         {title}
       </p>
-      <p className="text-base leading-7 text-black/80">
-        {content.trim() || 'Still taking shape.'}
-      </p>
+      {hasContent ? (
+        isArray ? (
+          <ul className="space-y-2">
+            {content.map((item, i) => (
+              <li key={i} className="text-base leading-7 text-black/80">
+                • {item}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-base leading-7 text-black/80">{content}</p>
+        )
+      ) : (
+        <p className="text-base leading-7 text-black/80">Still taking shape.</p>
+      )}
     </div>
   )
 }
@@ -127,6 +153,17 @@ export default function Blueprint({
           </p>
         )}
       </div>
+
+      {data.reflection.trim() && data.reflection.trim() !== 'yes' && (
+        <div className="mt-4 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+          <p className="mb-2 text-sm font-medium tracking-wide text-black/55">
+            Your refinement
+          </p>
+          <p className="text-base leading-7 italic text-black/80">
+            &ldquo;{data.reflection}&rdquo;
+          </p>
+        </div>
+      )}
 
       <div className="mt-8 flex flex-col items-start justify-between gap-4 border-t border-black/10 pt-6 md:flex-row md:items-center">
         <p className="max-w-2xl text-sm leading-6 text-black/55">

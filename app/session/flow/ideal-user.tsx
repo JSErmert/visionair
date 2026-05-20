@@ -1,7 +1,9 @@
+import { useMemo } from 'react'
 import PrimaryButton from '@/components/primary-button'
 import ScreenIntro from '@/components/screen-intro'
 import ScreenShell from '@/components/screen-shell'
 import SecondaryButton from '@/components/secondary-button'
+import { synthesizeIdealUser } from './synthesizers'
 
 type IdealUserProps = {
   value: string
@@ -17,6 +19,7 @@ export default function IdealUser({
   onBack,
 }: IdealUserProps) {
   const canContinue = value.trim().length > 0
+  const bullets = useMemo(() => synthesizeIdealUser(value), [value])
 
   return (
     <ScreenShell className="max-w-4xl">
@@ -57,7 +60,13 @@ export default function IdealUser({
             </p>
 
             {canContinue ? (
-              <p className="text-base leading-7 text-black/80">{value}</p>
+              <ul className="space-y-2">
+                {bullets.map((bullet, i) => (
+                  <li key={i} className="text-base leading-7 text-black/80">
+                    • {bullet}
+                  </li>
+                ))}
+              </ul>
             ) : (
               <p className="text-sm leading-6 text-black/45">
                 A live draft of the person you are building for will begin to
