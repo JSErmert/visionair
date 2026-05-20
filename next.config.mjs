@@ -53,6 +53,17 @@ const nextConfig = {
       },
     ]
   },
+  // Root → /session redirect. Temporary (307) — eventually replaced by a
+  // dedicated landing page with explainer copy + "Begin" CTA per Ben spec.
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: '/session',
+        permanent: false,
+      },
+    ]
+  },
 }
 
 export default nextConfig
