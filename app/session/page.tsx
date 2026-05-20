@@ -151,6 +151,17 @@ const YOUR_NEXT_MOVE_STEP_INDEX = steps.indexOf('your-next-move')
 const CLOSING_STEP_INDEX = steps.indexOf('closing')
 const STARTING_POINT_STEP_INDEX = steps.indexOf('starting-point')
 
+// v1.2.0 — Opus 4.7 distilled blueprint shape. Fetched once when the user
+// reaches the Blueprint step, cached at the session-page level so it persists
+// through to the Closing screen download. Null = not fetched / fallback.
+export type BlueprintSynthesis = {
+  coreDirection: string
+  whoItServes: string
+  whatItOffers: string
+  firstShippableSlice: string
+  proofItWorks: string
+}
+
 export default function SessionPage() {
   const [stepIndex, setStepIndex] = useState(0)
   const [state, setState] = useState<SessionState>(initialState)
@@ -166,6 +177,14 @@ export default function SessionPage() {
   //   closing within this same session).
   const [isViewingPastBlueprint, setIsViewingPastBlueprint] = useState(false)
   const [isFinalized, setIsFinalized] = useState(false)
+
+  // v1.2.0 — Opus 4.7 distilled synthesis (lifted from Blueprint screen so it
+  // persists through to Closing for inclusion in the Markdown download).
+  // Fetched once when stepIndex first reaches BLUEPRINT_STEP_INDEX with a
+  // non-empty session. Re-fetched if the user navigates back, edits inputs,
+  // and re-enters Blueprint (state-key dependency forces a new call).
+  const [blueprintSynthesis, setBlueprintSynthesis] = useState<BlueprintSynthesis | null>(null)
+  const [blueprintSynthesisLoading, setBlueprintSynthesisLoading] = useState(false)
 
   const currentStep: Step = steps[stepIndex]
 
@@ -208,6 +227,54 @@ export default function SessionPage() {
     if (isFinalized) return
     writeActiveDraft(state, stepIndex)
   }, [state, stepIndex, hasMounted, isViewingPastBlueprint, isFinalized])
+
+  // v1.2.0 — Fire /api/blueprint (Opus 4.7) when the user first lands on the
+  // Blueprint step. Cached for the rest of the session so Closing's download
+  // can include the distilled fields. Graceful fallback: on any failure
+  // (missing key, rate-limit, malformed JSON) we leave synthesis null and the
+  // Blueprint screen + download silently degrade to the deterministic flow.
+  useEffect(() => {
+    if (stepIndex !== BLUEPRINT_STEP_INDEX) return
+    if (blueprintSynthesis !== null) return // already fetched for this session
+    if (blueprintSynthesisLoading) return
+
+    let cancelled = false
+    setBlueprintSynthesisLoading(true)
+    fetch('/api/blueprint', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        entryPoint: state.entryPoint,
+        seedInput: state.seedInput,
+        reflection: state.reflection,
+        capability: state.capability,
+        problemSpace: state.problemSpace,
+        idealUser: state.idealUser,
+        transformationBefore: state.transformationBefore,
+        transformationAfter: state.transformationAfter,
+        opportunityForm: state.opportunityForm,
+        versionOne: state.versionOne,
+        pathForward: state.pathForward,
+      }),
+    })
+      .then((res) => res.json())
+      .then((payload) => {
+        if (cancelled) return
+        if (payload && payload.fallbackToFixed === false && payload.synthesis) {
+          setBlueprintSynthesis(payload.synthesis)
+        }
+      })
+      .catch(() => {
+        // swallow — graceful fallback
+      })
+      .finally(() => {
+        if (!cancelled) setBlueprintSynthesisLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stepIndex])
 
   const next = () => {
     if (stepIndex >= steps.length - 1) return
@@ -489,7 +556,8 @@ export default function SessionPage() {
         return (
           <Blueprint
             data={blueprintData}
-            sessionState={state}
+            synthesis={blueprintSynthesis}
+            synthesisLoading={blueprintSynthesisLoading}
             onNext={next}
             onBack={back}
           />
@@ -508,7 +576,8 @@ export default function SessionPage() {
         // v1.2.0 Beta-1.0 — Closing screen now offers a Download button for
         // the just-finalized blueprint. Pull label/savedAt from the most
         // recently appended saved blueprint (if any); state is still the live
-        // in-memory state by construction at this step.
+        // in-memory state by construction at this step. Synthesis is the
+        // Opus 4.7 distillation carried forward from the Blueprint step.
         const latest = savedBlueprints[savedBlueprints.length - 1]
         return (
           <Closing
@@ -516,6 +585,7 @@ export default function SessionPage() {
             state={state}
             label={latest?.label}
             savedAt={latest?.savedAt}
+            synthesis={blueprintSynthesis}
           />
         )
       }

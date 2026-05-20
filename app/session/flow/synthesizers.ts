@@ -243,19 +243,30 @@ const versionOneFallback = [
   'What it proves first is whether one concrete form and one clear boundary can be named and tested.',
 ]
 
+// Returns 'an' if the next word starts with a vowel sound, otherwise 'a'.
+// Cheap heuristic — true for "app", "interactive", "intelligent", "open"; false
+// for "platform", "service", "tool", "guided". Doesn't handle silent-h /
+// vowel-sounding consonants ("hour", "honest") but those don't appear in our
+// form vocabulary so it's safe here.
+function indefiniteArticle(noun: string): string {
+  const first = noun.trim().toLowerCase().charAt(0)
+  return /[aeiou]/.test(first) ? 'an' : 'a'
+}
+
 function composeVersionOneFormBullet(
   form: string | null,
   action: string | null,
   target: string | null
 ): string {
   if (form && action && target) {
+    const art = indefiniteArticle(form)
     if (verbsThatTakeDirectObject.has(action)) {
-      return `Version one is a ${form} that ${action} ${target}.`
+      return `Version one is ${art} ${form} that ${action} ${target}.`
     }
-    return `Version one is a ${form} that ${action} for ${target}.`
+    return `Version one is ${art} ${form} that ${action} for ${target}.`
   }
-  if (form && target) return `Version one is a ${form} for ${target}.`
-  if (form) return `Version one is a ${form}.`
+  if (form && target) return `Version one is ${indefiniteArticle(form)} ${form} for ${target}.`
+  if (form) return `Version one is ${indefiniteArticle(form)} ${form}.`
   if (target) return `Version one is a focused build aimed at ${target}.`
   return 'Version one is a build whose form has not yet been explicitly named.'
 }

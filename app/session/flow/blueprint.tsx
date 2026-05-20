@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react'
 import PrimaryButton from '@/components/primary-button'
 import ScreenIntro from '@/components/screen-intro'
 import ScreenShell from '@/components/screen-shell'
 import SecondaryButton from '@/components/secondary-button'
 import type { LaneProfile } from './lane-derivation'
-import type { SessionState } from '../page'
+import type { BlueprintSynthesis } from '../page'
 
 type BlueprintData = {
   capability: string[]
@@ -32,21 +31,15 @@ type BlueprintData = {
 
 type BlueprintProps = {
   data: BlueprintData
-  // v1.2.0 — full session state passed through so the Blueprint screen can
-  // fire /api/blueprint (Opus 4.7) on mount for a distilled 5-field synthesis.
-  // Deterministic blueprint below remains the source of truth; LLM card
-  // layers on top and hides silently on fallback.
-  sessionState: SessionState
+  // v1.2.0 — Opus 4.7 distilled synthesis lifted to page.tsx so it persists
+  // through to Closing for inclusion in the Markdown download. Loading flag
+  // shows the shimmer while the fetch is in flight. Null synthesis +
+  // !loading = graceful fallback (key missing, rate-limit, malformed JSON);
+  // the distilled card hides itself and the deterministic blueprint stands.
+  synthesis: BlueprintSynthesis | null
+  synthesisLoading: boolean
   onNext: () => void
   onBack: () => void
-}
-
-type SynthesizedBlueprint = {
-  coreDirection: string
-  whoItServes: string
-  whatItOffers: string
-  firstShippableSlice: string
-  proofItWorks: string
 }
 
 function SectionCard({
@@ -85,7 +78,8 @@ function SectionCard({
 
 export default function Blueprint({
   data,
-  sessionState,
+  synthesis,
+  synthesisLoading,
   onNext,
   onBack,
 }: BlueprintProps) {
@@ -93,58 +87,6 @@ export default function Blueprint({
     data.pathForward.immediate.trim() ||
     data.pathForward.nearTerm.trim() ||
     data.pathForward.later.trim()
-
-  // v1.2.0 — LLM-distilled blueprint (Opus 4.7 via /api/blueprint). Layered on
-  // top of the deterministic 7-section blueprint below. Graceful fallback: if
-  // the API key is missing / rate-limited / returns malformed output, the
-  // distilled card hides itself and the deterministic blueprint stays intact.
-  const [synthesis, setSynthesis] = useState<SynthesizedBlueprint | null>(null)
-  const [synthesisLoading, setSynthesisLoading] = useState(true)
-
-  useEffect(() => {
-    let cancelled = false
-    setSynthesisLoading(true)
-    fetch('/api/blueprint', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        entryPoint: sessionState.entryPoint,
-        seedInput: sessionState.seedInput,
-        reflection: sessionState.reflection,
-        capability: sessionState.capability,
-        problemSpace: sessionState.problemSpace,
-        idealUser: sessionState.idealUser,
-        transformationBefore: sessionState.transformationBefore,
-        transformationAfter: sessionState.transformationAfter,
-        opportunityForm: sessionState.opportunityForm,
-        versionOne: sessionState.versionOne,
-        pathForward: sessionState.pathForward,
-      }),
-    })
-      .then((res) => res.json())
-      .then((payload) => {
-        if (cancelled) return
-        if (payload && payload.fallbackToFixed === false && payload.synthesis) {
-          setSynthesis(payload.synthesis)
-        } else {
-          setSynthesis(null)
-        }
-      })
-      .catch(() => {
-        if (cancelled) return
-        setSynthesis(null)
-      })
-      .finally(() => {
-        if (!cancelled) setSynthesisLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
-    // We intentionally fire once on mount with the state captured at that
-    // moment — the Blueprint screen is downstream of every input, so state
-    // is effectively final by the time this screen renders.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   return (
     <ScreenShell className="max-w-5xl">

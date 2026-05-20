@@ -5,7 +5,7 @@
 // Re-uses the existing synthesizers / lane derivation / strategy compression
 // so the downloaded artifact matches exactly what the user saw on screen.
 
-import type { SessionState } from '../page'
+import type { SessionState, BlueprintSynthesis } from '../page'
 import { deriveLaneProfile } from './lane-derivation'
 import {
   synthesizeCapability,
@@ -20,6 +20,10 @@ export type ExportableBlueprint = {
   state: SessionState
   label?: string
   savedAt?: number
+  // v1.2.0 — Opus 4.7 distilled synthesis, included as a "Direction, distilled"
+  // section in the rendered Markdown when present. Null = graceful fallback;
+  // section omitted entirely so the deterministic blueprint stands alone.
+  synthesis?: BlueprintSynthesis | null
 }
 
 function formatTimestamp(savedAt: number | undefined): string {
@@ -97,7 +101,7 @@ export function makeBlueprintFilename(input: ExportableBlueprint): string {
 }
 
 export function blueprintToMarkdown(input: ExportableBlueprint): string {
-  const { state, label, savedAt } = input
+  const { state, label, savedAt, synthesis } = input
   const laneProfile = deriveLaneProfile(state)
 
   const capability = synthesizeCapability(state.capability, laneProfile)
@@ -130,6 +134,36 @@ export function blueprintToMarkdown(input: ExportableBlueprint): string {
   lines.push('')
   lines.push('---')
   lines.push('')
+
+  // --- Distilled synthesis (Opus 4.7) -----------------------------------
+  // Rendered only when /api/blueprint succeeded; otherwise the section is
+  // omitted entirely (graceful fallback to the deterministic blueprint).
+  if (synthesis) {
+    lines.push('## Your direction, distilled')
+    lines.push('')
+    lines.push('**Core direction**')
+    lines.push('')
+    lines.push(paragraph(synthesis.coreDirection))
+    lines.push('')
+    lines.push('**Who it serves**')
+    lines.push('')
+    lines.push(paragraph(synthesis.whoItServes))
+    lines.push('')
+    lines.push('**What it offers**')
+    lines.push('')
+    lines.push(paragraph(synthesis.whatItOffers))
+    lines.push('')
+    lines.push('**First shippable slice**')
+    lines.push('')
+    lines.push(paragraph(synthesis.firstShippableSlice))
+    lines.push('')
+    lines.push('**Proof it works**')
+    lines.push('')
+    lines.push(paragraph(synthesis.proofItWorks))
+    lines.push('')
+    lines.push('---')
+    lines.push('')
+  }
 
   // --- Seed input -------------------------------------------------------
   lines.push('## Your seed')

@@ -1,7 +1,7 @@
 import PrimaryButton from '@/components/primary-button'
 import SecondaryButton from '@/components/secondary-button'
 import ScreenShell from '@/components/screen-shell'
-import type { SessionState } from '../page'
+import type { SessionState, BlueprintSynthesis } from '../page'
 import { downloadBlueprint } from './export-markdown'
 
 type ClosingProps = {
@@ -9,14 +9,18 @@ type ClosingProps = {
   state?: SessionState
   label?: string
   savedAt?: number
+  // v1.2.0 — Opus 4.7 distilled synthesis carried forward from the Blueprint
+  // screen so the Markdown download can include it. Optional / null on
+  // graceful fallback.
+  synthesis?: BlueprintSynthesis | null
 }
 
-export default function Closing({ onRestart, state, label, savedAt }: ClosingProps) {
+export default function Closing({ onRestart, state, label, savedAt, synthesis }: ClosingProps) {
   const canDownload = !!state
 
   const handleDownload = () => {
     if (!state) return
-    downloadBlueprint({ state, label, savedAt })
+    downloadBlueprint({ state, label, savedAt, synthesis: synthesis ?? null })
   }
 
   return (

@@ -160,7 +160,9 @@ function composeCoreDirection(
   goal: string,
 ): string {
   const system = formNoun ?? 'first concrete version of your idea'
-  return `You are building a ${system} for ${userClass} so that they can ${goal}.`
+  const first = system.trim().toLowerCase().charAt(0)
+  const art = /[aeiou]/.test(first) ? 'an' : 'a'
+  return `You are building ${art} ${system} for ${userClass} so that they can ${goal}.`
 }
 
 // ---- What To Build First ----
