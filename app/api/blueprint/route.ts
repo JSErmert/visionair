@@ -29,23 +29,27 @@ export const runtime = 'nodejs'
 // Input schema
 // ============================================================================
 
+// Per-element caps sized for real long-form answers from the wizard
+// (capability Qs and pathForward buckets routinely run 200-500 chars; we
+// give 2x-4x headroom). Outer caps (array length, total string length)
+// still defend against runaway input.
 const BlueprintRequestSchema = z
   .object({
     entryPoint: z.string().max(32).default(''),
-    seedInput: z.string().max(2048).default(''),
-    reflection: z.string().max(1024).default(''),
-    capability: z.array(z.string().max(200)).max(32).default([]),
+    seedInput: z.string().max(4096).default(''),
+    reflection: z.string().max(2048).default(''),
+    capability: z.array(z.string().max(2000)).max(32).default([]),
     problemSpace: z.string().max(64).default(''),
-    idealUser: z.string().max(1024).default(''),
-    transformationBefore: z.string().max(1024).default(''),
-    transformationAfter: z.string().max(1024).default(''),
+    idealUser: z.string().max(2048).default(''),
+    transformationBefore: z.string().max(2048).default(''),
+    transformationAfter: z.string().max(2048).default(''),
     opportunityForm: z.string().max(64).default(''),
-    versionOne: z.string().max(1024).default(''),
+    versionOne: z.string().max(2048).default(''),
     pathForward: z
       .object({
-        immediate: z.string().max(512).default(''),
-        nearTerm: z.string().max(512).default(''),
-        later: z.string().max(512).default(''),
+        immediate: z.string().max(2000).default(''),
+        nearTerm: z.string().max(2000).default(''),
+        later: z.string().max(2000).default(''),
       })
       .default({ immediate: '', nearTerm: '', later: '' }),
   })
@@ -183,7 +187,14 @@ export async function POST(req: NextRequest): Promise<NextResponse<BlueprintResp
   try {
     const raw = await req.json()
     body = BlueprintRequestSchema.parse(raw)
-  } catch {
+  } catch (err) {
+    // Surface validation hint to the dev terminal so length-cap regressions
+    // don't get masked by the graceful-fallback path. Production logs are
+    // already structured; this is a no-op there.
+    if (process.env.NODE_ENV !== 'production') {
+      const msg = err instanceof Error ? err.message.slice(0, 400) : 'unknown'
+      console.warn('[/api/blueprint] invalid_input —', msg)
+    }
     return NextResponse.json({ fallbackToFixed: true, reason: 'invalid_input' }, { status: 400 })
   }
 

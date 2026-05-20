@@ -40,18 +40,18 @@ const QuestionRequestSchema = z
       'version-one',
       'path-forward',
     ]),
-    seedInput: z.string().max(2048).default(''),
+    seedInput: z.string().max(4096).default(''),
     entryPoint: z
       .enum(['strength', 'problem', 'idea', 'direction', 'unsure', ''])
       .default(''),
-    capability: z.array(z.string().max(200)).max(32).default([]),
+    capability: z.array(z.string().max(2000)).max(32).default([]),
     problemSpace: z
       .enum(['structure', 'guidance', 'opportunity', ''])
       .default(''),
-    idealUser: z.string().max(1024).default(''),
-    transformationBefore: z.string().max(1024).default(''),
-    transformationAfter: z.string().max(1024).default(''),
-    versionOne: z.string().max(1024).default(''),
+    idealUser: z.string().max(2048).default(''),
+    transformationBefore: z.string().max(2048).default(''),
+    transformationAfter: z.string().max(2048).default(''),
+    versionOne: z.string().max(2048).default(''),
   })
   .strict()
 
