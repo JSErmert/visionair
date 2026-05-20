@@ -1,8 +1,10 @@
+import { useEffect, useState } from 'react'
 import PrimaryButton from '@/components/primary-button'
 import ScreenIntro from '@/components/screen-intro'
 import ScreenShell from '@/components/screen-shell'
 import SecondaryButton from '@/components/secondary-button'
 import type { LaneProfile } from './lane-derivation'
+import type { SessionState } from '../page'
 
 type BlueprintData = {
   capability: string[]
@@ -30,8 +32,21 @@ type BlueprintData = {
 
 type BlueprintProps = {
   data: BlueprintData
+  // v1.2.0 — full session state passed through so the Blueprint screen can
+  // fire /api/blueprint (Opus 4.7) on mount for a distilled 5-field synthesis.
+  // Deterministic blueprint below remains the source of truth; LLM card
+  // layers on top and hides silently on fallback.
+  sessionState: SessionState
   onNext: () => void
   onBack: () => void
+}
+
+type SynthesizedBlueprint = {
+  coreDirection: string
+  whoItServes: string
+  whatItOffers: string
+  firstShippableSlice: string
+  proofItWorks: string
 }
 
 function SectionCard({
@@ -70,6 +85,7 @@ function SectionCard({
 
 export default function Blueprint({
   data,
+  sessionState,
   onNext,
   onBack,
 }: BlueprintProps) {
@@ -78,6 +94,58 @@ export default function Blueprint({
     data.pathForward.nearTerm.trim() ||
     data.pathForward.later.trim()
 
+  // v1.2.0 — LLM-distilled blueprint (Opus 4.7 via /api/blueprint). Layered on
+  // top of the deterministic 7-section blueprint below. Graceful fallback: if
+  // the API key is missing / rate-limited / returns malformed output, the
+  // distilled card hides itself and the deterministic blueprint stays intact.
+  const [synthesis, setSynthesis] = useState<SynthesizedBlueprint | null>(null)
+  const [synthesisLoading, setSynthesisLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    setSynthesisLoading(true)
+    fetch('/api/blueprint', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        entryPoint: sessionState.entryPoint,
+        seedInput: sessionState.seedInput,
+        reflection: sessionState.reflection,
+        capability: sessionState.capability,
+        problemSpace: sessionState.problemSpace,
+        idealUser: sessionState.idealUser,
+        transformationBefore: sessionState.transformationBefore,
+        transformationAfter: sessionState.transformationAfter,
+        opportunityForm: sessionState.opportunityForm,
+        versionOne: sessionState.versionOne,
+        pathForward: sessionState.pathForward,
+      }),
+    })
+      .then((res) => res.json())
+      .then((payload) => {
+        if (cancelled) return
+        if (payload && payload.fallbackToFixed === false && payload.synthesis) {
+          setSynthesis(payload.synthesis)
+        } else {
+          setSynthesis(null)
+        }
+      })
+      .catch(() => {
+        if (cancelled) return
+        setSynthesis(null)
+      })
+      .finally(() => {
+        if (!cancelled) setSynthesisLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+    // We intentionally fire once on mount with the state captured at that
+    // moment — the Blueprint screen is downstream of every input, so state
+    // is effectively final by the time this screen renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   return (
     <ScreenShell className="max-w-5xl">
       <ScreenIntro
@@ -85,6 +153,63 @@ export default function Blueprint({
         title="Your Structured Opportunity Blueprint"
         description="This blueprint was built from the truth you already carry. VisionAir helped give it shape."
       />
+
+      {/* v1.2.0 — Opus 4.7 distilled synthesis. Renders above the deterministic
+          blueprint when available; hides silently on fallback. */}
+      {synthesisLoading && (
+        <div className="mb-6 rounded-2xl border border-black/5 bg-white p-5">
+          <p className="text-sm text-black/40">Distilling your direction…</p>
+        </div>
+      )}
+      {!synthesisLoading && synthesis && (
+        <div className="mb-6 rounded-2xl border border-black/15 bg-white p-6">
+          <p className="mb-4 text-xs font-medium uppercase tracking-wide text-black/45">
+            Your direction, distilled
+          </p>
+          <div className="space-y-4">
+            <div>
+              <p className="mb-1 text-sm font-medium text-black/55">
+                Core direction
+              </p>
+              <p className="text-base leading-7 text-black/85">
+                {synthesis.coreDirection}
+              </p>
+            </div>
+            <div>
+              <p className="mb-1 text-sm font-medium text-black/55">
+                Who it serves
+              </p>
+              <p className="text-base leading-7 text-black/85">
+                {synthesis.whoItServes}
+              </p>
+            </div>
+            <div>
+              <p className="mb-1 text-sm font-medium text-black/55">
+                What it offers
+              </p>
+              <p className="text-base leading-7 text-black/85">
+                {synthesis.whatItOffers}
+              </p>
+            </div>
+            <div>
+              <p className="mb-1 text-sm font-medium text-black/55">
+                First shippable slice
+              </p>
+              <p className="text-base leading-7 text-black/85">
+                {synthesis.firstShippableSlice}
+              </p>
+            </div>
+            <div>
+              <p className="mb-1 text-sm font-medium text-black/55">
+                Proof it works
+              </p>
+              <p className="text-base leading-7 text-black/85">
+                {synthesis.proofItWorks}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2">
         <SectionCard

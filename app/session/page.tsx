@@ -489,6 +489,7 @@ export default function SessionPage() {
         return (
           <Blueprint
             data={blueprintData}
+            sessionState={state}
             onNext={next}
             onBack={back}
           />
