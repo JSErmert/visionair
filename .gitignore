@@ -110,3 +110,5 @@ tmp/
 *.tgz
 *.zip
 *.7z
+
+.vercel
