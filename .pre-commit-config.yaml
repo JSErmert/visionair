@@ -29,3 +29,17 @@ repos:
     rev: v8.21.2
     hooks:
       - id: gitleaks
+
+  # Claude reasoning-based security review (Ryan-spec): reads SECURITY.md and
+  # reviews the outgoing diff. Runs at pre-PUSH (once per push, not per commit)
+  # to keep API spend down. Advisory by default — only a 'VERDICT: BLOCK'
+  # response stops the push; override any time with `git push --no-verify`.
+  - repo: local
+    hooks:
+      - id: claude-security-review
+        name: Claude security review (against SECURITY.md)
+        entry: bash scripts/security-review.sh
+        language: system
+        stages: [pre-push]
+        pass_filenames: false
+        always_run: true
