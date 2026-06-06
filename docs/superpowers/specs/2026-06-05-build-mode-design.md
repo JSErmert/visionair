@@ -10,6 +10,8 @@ VisionAir **Build Mode** is a new mode in VisionAir that turns a full-stack app 
 
 **VisionAir engineers the context; Claude Code does the building.** It is a booster, not a builder.
 
+> **Empirical grounding:** the output structure and coverage model below are reverse-engineered from the operator's own brainstorm→seed track record across HydrOS, VisionAir/mediCalm, and AlignFlow/Spider — they converge on one reusable pattern. See companion `2026-06-05-build-mode-seed-pattern.md`.
+
 ## Goals
 
 - Capture maximum context per question (coverage-driven adaptive interview).
@@ -36,7 +38,7 @@ A new **Build Mode** alongside the existing consumer idea→blueprint mode. Both
 
 Components:
 
-1. **Coverage model** *(config)* — the build dimensions the interview must cover: problem · users · core features/flows · data model · auth & roles · integrations/external services · non-goals · constraints/scale · deployment.
+1. **Coverage model** *(config)* — the interview's checklist IS the operator's proven depth-moves (see seed-pattern doc): identity (IS / **IS-NOT** · persona · value mechanism) → non-negotiables ("what must never happen") → doctrine / priority hierarchy → output & data contracts → core logic/flow → security → known-gaps.
 2. **Interview engine** — given `(coverage state + prior answers)`, generates the next highest-information question; **stops when every dimension is covered or marked unknown** (~6–12 questions).
 3. **Synthesizer** — turns covered context into the elicited artifacts under a **ground-or-flag** rule (reuses ProjectVisionary's `flag_ungrounded`): never invents — gaps route to `open-questions.md`.
 4. **Preset library** (`presets/`) — the **validation-gated** house-stack best-practice files.
@@ -44,30 +46,37 @@ Components:
 6. **Packager** — assembles elicited + preset + methodology into a folder tree → ZIP → download.
 7. **Build Mode UI** — the question "slides" + a final download screen (reuses the existing session UI).
 
-## Output artifact set (ZIP — fresh-repo-shaped)
+## Output artifact set (ZIP — ordered authority stack)
+
+Per the seed-pattern analysis, the output is **not a flat file set** — it is an **ordered, authority-ranked context sequence fronted by a launch meta-prompt** (the structure that makes the operator's own Claude Code builds succeed). v1 emits the **distilled load-bearing core** scaled to the idea, NOT the maximal HydrOS 14-file form (YAGNI):
 
 ```
-CLAUDE.md                  [preset+elicited]  conventions Claude Code reads first
-README.md                  [elicited]         idea summary
-docs/spec.md               [elicited]         what to build — superpowers brainstorming-spec format
-docs/plan-seed.md          [elicited+preset]  milestone-shaped starting plan
-docs/open-questions.md     [open]             flagged unknowns — the anti-confab surface
-docs/ARCHITECTURE.md       [preset+elicited]  structure + rationale
-docs/WORKFLOW.md           [preset]           methodology (durable arc + accelerator refs)
-SECURITY.md                [preset]           house security DNA
-SETUP.md                   [preset]           prereqs incl. optional plugin install
-.github/workflows/ci.yml   [preset]           type-check/build + Trivy + gitleaks
-.pre-commit-config.yaml    [preset]
-.gitignore                 [preset]
+LAUNCH.md                          [preset]           meta-prompt: read-order + conflict rules (read first)
+CLAUDE.md                          [preset+elicited]  authority registry: read-order, doctrine, conflict-resolution
+README.md                          [elicited]         idea summary + quick start
+docs/context/00-identity.md        [elicited]         IS / IS-NOT + persona + value mechanism
+docs/context/01-non-negotiables.md [elicited+preset]  "what must never happen" (hard constraints)
+docs/context/02-doctrine.md        [elicited]         priority hierarchy / conflict resolution
+docs/context/03-spec.md            [elicited]         what to build (superpowers brainstorming-spec format)
+docs/context/04-contracts.md       [elicited]         data + output schemas (locked)
+docs/context/05-architecture.md    [preset+elicited]  stack, structure, runtime, deploy
+docs/context/06-security.md        [preset]           threat model + house security DNA
+docs/context/07-known-gaps.md      [open]             honest unknowns (the anti-confab surface)
+docs/context/08-workflow.md        [preset]           methodology arc + accelerator refs
+plan-seed.md                       [elicited+preset]  milestone-shaped starting plan
+SETUP.md                           [preset]           prereqs incl. optional plugin install
+.github/workflows/ci.yml           [preset]           type-check/build + Trivy + gitleaks
+.pre-commit-config.yaml            [preset]
+.gitignore                         [preset]
 ```
 
-**Provenance tags** on every file/section: `[preset]` validated best-practice · `[elicited]` from the interview · `[open]` unknown. Claude Code and the user always know what is asserted vs assumed.
+**Provenance tags** on every file/section: `[preset]` validated best-practice · `[elicited]` from the interview · `[open]` unknown — so Claude Code and the user always know what is asserted vs assumed.
 
-`docs/spec.md` ships in the **superpowers brainstorming-spec format**, so the user's Claude Code can run `writing-plans` on it immediately. The operator's existing `docs/superpowers/specs` convention is the output format (dogfooding).
+`LAUNCH.md` mandates the read-order and pre-loads state (prevents hallucination); `CLAUDE.md` carries the authority + conflict-resolution registry; `docs/context/03-spec.md` ships in **superpowers brainstorming-spec format** so the user's Claude Code can run `writing-plans` on it immediately. Dogfoods the operator's existing `docs/superpowers/specs` convention.
 
 ## The interview (coverage-driven adaptive)
 
-The engine tracks the coverage checklist. For each turn it asks the question that maximizes information gain against the remaining-uncovered dimensions, adapting to prior answers. A dimension exits the checklist when it is either covered with grounded context or explicitly marked unknown. Unknowns flow to `open-questions.md`. This operationalizes "maximum context, fewest questions" and makes anti-confabulation structural rather than a post-hoc filter.
+The engine tracks the coverage checklist — and the checklist **is the operator's empirical depth-moves** (identity/IS-NOT → non-negotiables → doctrine → contracts → core logic → security → known-gaps), not a generic requirements list. For each turn it asks the question that maximizes information gain against the remaining-uncovered moves, adapting to prior answers. A move exits the checklist when it is either covered with grounded context or explicitly marked unknown. Unknowns flow to `07-known-gaps.md`. This operationalizes "maximum context, fewest questions," makes anti-confabulation structural rather than post-hoc, and ensures "covered" means the seed has the depth that makes the operator's own builds succeed.
 
 ## Anti-confabulation
 
