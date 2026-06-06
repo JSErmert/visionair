@@ -1,0 +1,24 @@
+import { describe, it, expect } from "vitest";
+import { initCoverage, remainingMoves, applyAnswer, markUnknown } from "./coverage-model";
+
+describe("coverage model", () => {
+  it("starts with all moves pending", () => {
+    const s = initCoverage("a budgeting app");
+    expect(s.idea).toBe("a budgeting app");
+    expect(remainingMoves(s).length).toBe(6);
+  });
+
+  it("marks a move covered when answered and removes it from remaining", () => {
+    let s = initCoverage("x");
+    s = applyAnswer(s, { move: "identity", question: "what is it?", response: "a tool for X" });
+    expect(s.statuses.identity).toBe("covered");
+    expect(remainingMoves(s)).not.toContain("identity");
+  });
+
+  it("marks a move unknown and removes it from remaining", () => {
+    let s = initCoverage("x");
+    s = markUnknown(s, "security");
+    expect(s.statuses.security).toBe("unknown");
+    expect(remainingMoves(s)).not.toContain("security");
+  });
+});
