@@ -1,6 +1,9 @@
-import { CoverageState, DepthMove, ElicitedArtifact } from "./types";
+import { CoverageState, DepthMove, DEPTH_MOVES, ElicitedArtifact } from "./types";
 import { AskLLM } from "./interview";
 
+// Path numbers match the design spec's context sequence. 05-architecture and
+// 08-workflow are PRESET files (produced by Gate 1 / Plan 2), not elicited from
+// an interview move — hence the gaps here are intentional.
 const MOVE_ARTIFACT: Record<DepthMove, string> = {
   "identity": "docs/context/00-identity.md",
   "non-negotiables": "docs/context/01-non-negotiables.md",
@@ -17,7 +20,7 @@ export async function synthesize(
   const arts: ElicitedArtifact[] = [];
   const gaps: DepthMove[] = [];
 
-  for (const move of Object.keys(s.statuses) as DepthMove[]) {
+  for (const move of DEPTH_MOVES) {
     const status = s.statuses[move];
     if (status === "unknown" || status === "pending") {
       gaps.push(move);

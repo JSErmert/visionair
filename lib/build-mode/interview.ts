@@ -1,4 +1,4 @@
-import { CoverageState, DepthMove } from "./types";
+import { CoverageState, DepthMove, DEPTH_MOVES } from "./types";
 import { remainingMoves } from "./coverage-model";
 
 export type AskLLM = (system: string, user: string) => Promise<string>;
@@ -18,7 +18,7 @@ const MOVE_BRIEF: Record<DepthMove, string> = {
 };
 
 export function isComplete(s: CoverageState): boolean {
-  return remainingMoves(s).length === 0;
+  return DEPTH_MOVES.every((m) => s.statuses[m] !== "pending");
 }
 
 export async function nextQuestion(

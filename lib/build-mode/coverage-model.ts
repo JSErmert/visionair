@@ -15,7 +15,7 @@ export function applyAnswer(s: CoverageState, a: Answer): CoverageState {
   return {
     ...s,
     statuses: { ...s.statuses, [a.move]: "covered" },
-    answers: [...s.answers, a],
+    answers: [...s.answers.filter((x) => x.move !== a.move), a],
   };
 }
 

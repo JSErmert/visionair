@@ -24,5 +24,6 @@ describe("synthesizer", () => {
     // the LLM is never asked to fabricate content for the unknown 'security' move
     const securityArt = arts.find((a) => a.path === "docs/context/06-security.md");
     expect(securityArt).toBeUndefined();
+    expect(arts.filter((a) => a.path !== "docs/context/07-known-gaps.md")).toHaveLength(0);
   });
 });

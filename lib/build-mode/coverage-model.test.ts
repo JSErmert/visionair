@@ -21,4 +21,12 @@ describe("coverage model", () => {
     expect(s.statuses.security).toBe("unknown");
     expect(remainingMoves(s)).not.toContain("security");
   });
+
+  it("replaces the prior answer when the same move is answered twice", () => {
+    let s = initCoverage("x");
+    s = applyAnswer(s, { move: "identity", question: "q", response: "first" });
+    s = applyAnswer(s, { move: "identity", question: "q", response: "second" });
+    expect(s.answers.filter((a) => a.move === "identity")).toHaveLength(1);
+    expect(s.answers[0].response).toBe("second");
+  });
 });
