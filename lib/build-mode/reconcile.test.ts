@@ -26,4 +26,20 @@ describe("reconciliation pass", () => {
     const gaps = out.find((a) => a.path === "docs/context/07-known-gaps.md");
     expect(gaps?.content).toBe("# Known gaps\n");
   });
+
+  it("bare code-fence is parsed", async () => {
+    const askLLM = vi.fn().mockResolvedValue(
+      ["```", JSON.stringify([{summary:"bare fence contradiction", locations:"a vs b"}]), "```"].join("\n"),
+    );
+    const out = await reconcile(base, askLLM);
+    const gaps = out.find((a) => a.path === "docs/context/07-known-gaps.md");
+    expect(gaps?.content).toContain("bare fence contradiction");
+  });
+
+  it("malformed JSON does not throw and changes nothing", async () => {
+    const askLLM = vi.fn().mockResolvedValue("not json {{{");
+    const out = await reconcile(base, askLLM);
+    const gaps = out.find((a) => a.path === "docs/context/07-known-gaps.md");
+    expect(gaps?.content).toBe("# Known gaps\n");
+  });
 });

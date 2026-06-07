@@ -24,7 +24,7 @@ export async function reconcile(
   let found: Contradiction[] = [];
   try {
     const raw = (await askLLM(system, user)).trim()
-      .replace(/^```json\s*/i, "").replace(/```$/, "").trim();
+      .replace(/^```(?:json)?\s*/i, "").replace(/```$/, "").trim();
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) found = parsed;
   } catch {
