@@ -6,7 +6,7 @@ import { assemble, FileMap } from "./assemble";
 import { pack } from "./pack";
 
 export type AnswerProvider = (q: NextQuestion) => Promise<string>;
-const UNKNOWN = /^\s*(idk|i\s*don'?t\s*know|not\s*sure|unknown|skip|n\/?a)\s*$/i;
+export const UNKNOWN = /^\s*(idk|i\s*don'?t\s*know|not\s*sure|unknown|skip|n\/?a)\s*$/i;
 
 export interface BuildResult { fileMap: FileMap; zip: Uint8Array; }
 
