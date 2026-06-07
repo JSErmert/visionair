@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { initCoverage, applyAnswer, markUnknown } from "./coverage-model";
-import { synthesize } from "./synthesize";
+import { synthesize, SYNTH_SYSTEM } from "./synthesize";
 
 describe("synthesizer", () => {
   it("emits an identity artifact from a covered move and tags it elicited", async () => {
@@ -25,5 +25,22 @@ describe("synthesizer", () => {
     const securityArt = arts.find((a) => a.path === "docs/context/06-security.md");
     expect(securityArt).toBeUndefined();
     expect(arts.filter((a) => a.path !== "docs/context/07-known-gaps.md")).toHaveLength(0);
+  });
+});
+
+describe("deviation-flagging", () => {
+  it("the synthesis system prompt instructs the model to flag deviations", () => {
+    expect(SYNTH_SYSTEM).toContain("DEVIATION from elicited answer");
+  });
+
+  it("preserves a DEVIATION note returned by the model (does not strip it)", async () => {
+    const askLLM = vi.fn().mockResolvedValue(
+      "# Identity\nIS: a tool.\n> DEVIATION from elicited answer — rationale: chose safer default.",
+    );
+    let s = initCoverage("x");
+    s = applyAnswer(s, { move: "identity", question: "q", response: "..." });
+    const arts = await synthesize(s, askLLM);
+    const identity = arts.find((a) => a.path === "docs/context/00-identity.md");
+    expect(identity?.content).toContain("DEVIATION from elicited answer");
   });
 });

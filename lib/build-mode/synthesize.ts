@@ -13,6 +13,14 @@ const MOVE_ARTIFACT: Record<DepthMove, string> = {
   "security": "docs/context/06-security.md",
 };
 
+export const SYNTH_SYSTEM =
+  "You are VisionAir Build Mode synthesizer. Write a concise, high-depth context file " +
+  "for the named dimension, grounded ONLY in the user's answer. Do not invent facts. " +
+  "If the answer is thin, write only what it supports. If you make any design choice that " +
+  "diverges from the user's answer (e.g. a safer alternative), you MUST add a line " +
+  "`> DEVIATION from elicited answer — rationale: <why>` and MUST NOT present the change as " +
+  "something the user specified.";
+
 export async function synthesize(
   s: CoverageState,
   askLLM: AskLLM,
@@ -31,10 +39,7 @@ export async function synthesize(
       gaps.push(move);
       continue;
     }
-    const system =
-      "You are VisionAir Build Mode synthesizer. Write a concise, high-depth context file " +
-      "for the named dimension, grounded ONLY in the user's answer. Do not invent facts. " +
-      "If the answer is thin, write only what it supports.";
+    const system = SYNTH_SYSTEM;
     const user = `IDEA: ${s.idea}\nDIMENSION: ${move}\nUSER ANSWER: ${answer.response}\n\nReturn markdown.`;
     const content = (await askLLM(system, user)).trim();
     arts.push({ path: MOVE_ARTIFACT[move], provenance: "elicited", content });
