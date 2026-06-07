@@ -10,6 +10,7 @@ export const READ_ORDER: string[] = [
   "docs/context/06-security.md",
   "docs/context/07-known-gaps.md",
   "docs/context/08-workflow.md",
+  "docs/context/testing.md",
 ];
 
 export const CONFLICT_RULE =

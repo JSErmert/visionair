@@ -17,9 +17,15 @@ describe("preset loader", () => {
       if (path.endsWith(".md")) expect(content).toMatch(/VALIDATED DEFAULT/i);
     }
   });
-  it("ci.yml pins actions by 40-char SHA, never bare tags", () => {
+  it("every active uses: in ci.yml is pinned to a 40-char SHA (no bare tags)", () => {
     const ci = loadPresets()[".github/workflows/ci.yml"];
-    expect(ci).toMatch(/uses: [\w./-]+@[0-9a-f]{40}/);
-    expect(ci).not.toMatch(/uses: [\w./-]+@v\d+\s*$/m);
+    const activeUses = ci
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((l) => l.startsWith("uses:")); // commented lines start with '#', excluded
+    expect(activeUses.length).toBeGreaterThan(0);
+    for (const line of activeUses) {
+      expect(line, line).toMatch(/uses:\s+[\w./-]+@[0-9a-f]{40}\b/);
+    }
   });
 });

@@ -8,6 +8,7 @@ describe("authority", () => {
     expect(READ_ORDER).toContain("docs/context/01-non-negotiables.md");
     expect(READ_ORDER.indexOf("docs/context/00-identity.md"))
       .toBeLessThan(READ_ORDER.indexOf("docs/context/07-known-gaps.md"));
+    expect(READ_ORDER).toContain("docs/context/testing.md");
   });
   it("conflict rule ranks non-negotiables/contracts/security above prose", () => {
     expect(CONFLICT_RULE).toMatch(/non-negotiables/i);
