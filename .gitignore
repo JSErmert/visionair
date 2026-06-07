@@ -11,6 +11,9 @@ build/
 dist/
 .turbo/
 
+# Next.js API route named 'build' — un-ignore so app/api/build/route.ts is tracked
+!app/api/build/
+
 # caches
 .cache/
 .parcel-cache/
