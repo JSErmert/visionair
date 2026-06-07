@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "build-mode": "tsx lib/build-mode/cli-build.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.97.1",
@@ -25,6 +26,7 @@
     "playwright": "^1.60.0",
     "postcss": "^8.5.10",
     "tailwindcss": "^3.4.4",
+    "tsx": "^4.22.4",
     "typescript": "^5.4.5",
     "vitest": "^4.1.8"
   },
