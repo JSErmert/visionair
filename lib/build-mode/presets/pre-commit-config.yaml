@@ -1,0 +1,39 @@
+# [preset] VALIDATED DEFAULT for the Next.js/TS/Vercel house stack — verify against THIS app; flag any mismatch as a gap in docs/context/07-known-gaps.md.
+# Authority: pre-commit.org; gitleaks docs; OWASP A03:2025 Supply Chain.
+#
+# NOTE — JS/TS projects: prefer Husky + lint-staged for local hooks.
+# The Python `pre-commit` framework (https://pre-commit.com) requires Python on every
+# developer machine. For a Node.js project, Husky integrates natively with npm lifecycle
+# scripts and does not require a separate runtime.
+#
+#   Husky setup (recommended alternative):
+#     npm install --save-dev husky lint-staged
+#     npx husky init
+#     # Add to .husky/pre-commit:
+#     #   npx lint-staged
+#     # Add to package.json:
+#     #   "lint-staged": { "*.{ts,tsx}": ["eslint --fix", "tsc --noEmit"] }
+#
+# This file is the FALLBACK if the team is already using pre-commit.com for other reasons.
+#
+# IMPORTANT: Local hooks are bypassable with `git commit --no-verify`.
+# Always back local hooks with CI (see .github/workflows/ci.yml) + GitHub push-protection.
+# CI is the authoritative backstop; local hooks are developer ergonomics only.
+
+repos:
+  # Secret detection — catches credentials before they enter git history
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2  # pin to a specific version; keep current via Dependabot
+    hooks:
+      - id: gitleaks
+
+  # Prevent accidentally committing large files (binaries, datasets, etc.)
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0  # pin; keep current via Dependabot
+    hooks:
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace

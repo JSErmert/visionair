@@ -1,0 +1,98 @@
+# [preset] VALIDATED DEFAULT for the Next.js/TS/Vercel house stack — verify against THIS app; flag any mismatch as a gap in docs/context/07-known-gaps.md.
+# Authority: GitHub Actions secure-use guide; SLSA v1.0; OWASP A03:2025 Software Supply Chain Failures.
+
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  # NOTE: Never use pull_request_target with secrets — it runs in the context of the target
+  # branch and grants write access to PRs from forks. Use pull_request instead.
+
+# Least-privilege token: read-only by default; individual jobs/steps opt-in to write scopes.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        # actions/checkout v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Setup Node
+        # actions/setup-node v4.4.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies (lockfile-enforced)
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+        # Coverage is REPORT-ONLY — no hard threshold.
+        # Failing a build on an arbitrary coverage number trains teams to ignore the signal.
+        # Rely on code review and Testing Trophy discipline for quality gates.
+
+      - name: npm audit (report-only)
+        run: npm audit --audit-level=none || true
+        # npm audit is HIGH NOISE / advisory. Do not fail the build on audit findings.
+        # Use Dependabot (see dependabot.yml) + Trivy for actionable supply-chain gating.
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        # actions/checkout v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks secret scan
+        # gitleaks/gitleaks-action v2.3.9
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # CONDITIONAL: Trivy vulnerability scan + SARIF upload.
+  # Requirements before enabling:
+  #   - GitHub code-scanning must be enabled (not available on private repos under Free/Pro tier).
+  #   - This job adds ~2 min and is lower-signal for non-containerized JS apps.
+  #   - Enable when: repo is public OR code-scanning is available on your plan.
+  #
+  # trivy-scan:
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: read
+  #     security-events: write   # needed to upload SARIF
+  #   steps:
+  #     - name: Checkout
+  #       # actions/checkout v4.2.2
+  #       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+  #
+  #     - name: Run Trivy vulnerability scanner
+  #       # aquasecurity/trivy-action — pin SHA before enabling
+  #       uses: aquasecurity/trivy-action@<SHA>  # TODO: resolve SHA
+  #       with:
+  #         scan-type: "fs"
+  #         format: "sarif"
+  #         output: "trivy-results.sarif"
+  #
+  #     - name: Upload SARIF to code-scanning
+  #       uses: github/codeql-action/upload-sarif@<SHA>  # TODO: resolve SHA
+  #       with:
+  #         sarif_file: "trivy-results.sarif"
