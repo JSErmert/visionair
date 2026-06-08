@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
-import { OWNER_ID } from '@/lib/build-mode/server-auth'
+import { isOwner, OWNER_ID } from '@/lib/build-mode/server-auth'
 import { getSql } from '@/lib/build-mode/db/client'
 import { getSessionWithVersions, addVersion } from '@/lib/build-mode/db/sessions'
 import { auditPack, enhanceFinish } from '@/lib/build-mode/enhance'
@@ -25,8 +25,8 @@ const Schema = z
   })
   .strict()
 
-// SECURITY TODO (before public deploy): gate behind isOwner(). Open for local use.
 export async function POST(req: NextRequest) {
+  if (!isOwner(req)) return Response.json({ error: 'unauthorized' }, { status: 401 })
   if (!process.env.ANTHROPIC_API_KEY) {
     return Response.json({ error: 'server not configured' }, { status: 503 })
   }

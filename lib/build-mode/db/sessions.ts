@@ -120,6 +120,19 @@ export async function addVersion(
   return { versionId: Number(rows[0].id), versionNo: Number(rows[0].version_no) };
 }
 
+// Delete a session (and its versions via ON DELETE CASCADE), scoped to owner.
+// Returns the number of session rows removed (0 if not found / not owned).
+export async function deleteSession(
+  sql: SqlClient,
+  ownerId: number,
+  sessionId: number,
+): Promise<number> {
+  const rows = (await sql`
+    DELETE FROM sessions WHERE id = ${sessionId} AND owner_id = ${ownerId}
+    RETURNING id`) as { id: number }[];
+  return rows.length;
+}
+
 export async function listSessions(sql: SqlClient, ownerId: number): Promise<SessionSummary[]> {
   const rows = (await sql`
     SELECT s.id, s.title, s.updated_at,

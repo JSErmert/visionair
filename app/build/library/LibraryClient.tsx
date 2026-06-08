@@ -55,12 +55,20 @@ export default function LibraryClient() {
   const [sessions, setSessions] = useState<SessionSummary[] | null>(null);
   const [detail, setDetail] = useState<SessionDetail | null>(null);
   const [openVersion, setOpenVersion] = useState<number | null>(null);
+  const [needsLogin, setNeedsLogin] = useState(false);
   const [err, setErr] = useState("");
 
   useEffect(() => {
     fetch("/api/sessions")
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("Could not load your library."))))
-      .then((d) => setSessions(d.sessions ?? []))
+      .then(async (r) => {
+        if (r.status === 401) {
+          setNeedsLogin(true);
+          return;
+        }
+        if (!r.ok) throw new Error("Could not load your library.");
+        const d = await r.json();
+        setSessions(d.sessions ?? []);
+      })
       .catch((e) => setErr(String(e.message || e)));
   }, []);
 
@@ -68,13 +76,45 @@ export default function LibraryClient() {
     setErr("");
     setDetail(null);
     fetch(`/api/sessions/${id}`)
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("Could not open that session."))))
-      .then((d) => {
+      .then(async (r) => {
+        if (r.status === 401) {
+          setNeedsLogin(true);
+          return;
+        }
+        if (!r.ok) throw new Error("Could not open that session.");
+        const d = await r.json();
         setDetail(d.session);
         setOpenVersion(d.session?.versions?.[0]?.versionNo ?? null);
       })
       .catch((e) => setErr(String(e.message || e)));
   }
+
+  function removeSession(id: number) {
+    if (!window.confirm("Delete this session and all its versions? This cannot be undone.")) return;
+    fetch(`/api/sessions/${id}`, { method: "DELETE" })
+      .then((r) => {
+        if (!r.ok) throw new Error("Delete failed.");
+        setSessions((prev) => (prev ? prev.filter((s) => s.id !== id) : prev));
+      })
+      .catch((e) => setErr(String(e.message || e)));
+  }
+
+  if (needsLogin)
+    return (
+      <ScreenShell>
+        <ScreenIntro
+          eyebrow="Your library"
+          title="Sign in to view your library."
+          description="Your saved sessions and Enhance are private to you."
+        />
+        <a
+          href="/build/login?next=/build/library"
+          className="inline-block rounded bg-black px-4 py-2 text-sm text-white"
+        >
+          Sign in →
+        </a>
+      </ScreenShell>
+    );
 
   // --- Session detail view ---
   if (detail) {
@@ -169,13 +209,23 @@ export default function LibraryClient() {
                   {s.versionCount === 1 ? "version" : "versions"}
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => openSession(s.id)}
-                className="rounded-xl border border-black/15 bg-white px-4 py-2 text-sm font-medium text-black transition hover:bg-black/[0.04]"
-              >
-                Open
-              </button>
+              <div className="flex shrink-0 gap-2">
+                <button
+                  type="button"
+                  onClick={() => openSession(s.id)}
+                  className="rounded-xl border border-black/15 bg-white px-4 py-2 text-sm font-medium text-black transition hover:bg-black/[0.04]"
+                >
+                  Open
+                </button>
+                <button
+                  type="button"
+                  onClick={() => removeSession(s.id)}
+                  className="rounded-xl border border-black/15 bg-white px-3 py-2 text-sm text-black/55 transition hover:border-red-300 hover:text-red-600"
+                  title="Delete session"
+                >
+                  Delete
+                </button>
+              </div>
             </li>
           ))}
         </ul>

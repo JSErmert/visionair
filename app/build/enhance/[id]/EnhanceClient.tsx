@@ -28,10 +28,15 @@ export default function EnhanceClient({ sessionId }: { sessionId: number }) {
       body: JSON.stringify({ action: "audit", sessionId }),
     })
       .then(async (r) => {
+        if (r.status === 401) {
+          window.location.href = `/build/login?next=/build/enhance/${sessionId}`;
+          return null;
+        }
         if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || "audit failed");
         return r.json();
       })
       .then((d) => {
+        if (!d) return;
         const t: Target[] = d.targets ?? [];
         setTargets(t);
         setPhase(t.length ? "interview" : "empty");
@@ -71,6 +76,10 @@ export default function EnhanceClient({ sessionId }: { sessionId: number }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "finish", sessionId, answers: finalAnswers }),
       });
+      if (r.status === 401) {
+        window.location.href = `/build/login?next=/build/enhance/${sessionId}`;
+        return;
+      }
       if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || "enhance failed");
       const d = await r.json();
       const bytes = Uint8Array.from(atob(d.zipBase64), (c) => c.charCodeAt(0));

@@ -337,7 +337,11 @@ export default function BuildClient() {
           </p>
         ) : (
           <p className="mb-4 text-sm text-amber-700 bg-amber-50 rounded-xl px-4 py-2">
-            Not saved to your library (storage unavailable). Your pack is still ready to download below.
+            Not saved to your library —{" "}
+            <a href="/build/login?next=/build/library" className="underline hover:text-amber-900">
+              sign in
+            </a>{" "}
+            first and your builds save automatically. Your pack is still ready to download below.
           </p>
         )}
         <pre className="whitespace-pre-wrap text-sm leading-relaxed mb-5">{blueprint}</pre>
