@@ -1,5 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { SEED_KEY } from "@/lib/build-mode/seed";
+import type { BuildSeed } from "@/lib/build-mode/seed";
 
 type Answer = { move: string; question: string; response: string };
 type Phase = "idea" | "interview" | "building" | "done" | "error";
@@ -7,7 +9,22 @@ type Phase = "idea" | "interview" | "building" | "done" | "error";
 export default function BuildClient() {
   const [phase, setPhase] = useState<Phase>("idea");
   const [idea, setIdea] = useState("");
+  const [fromBlueprint, setFromBlueprint] = useState(false);
   const [answers, setAnswers] = useState<Answer[]>([]);
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(SEED_KEY);
+      if (raw) {
+        const seed = JSON.parse(raw) as BuildSeed;
+        setIdea(seed.idea);
+        setFromBlueprint(true);
+        sessionStorage.removeItem(SEED_KEY);
+      }
+    } catch {
+      // ignore malformed seed
+    }
+  }, []);
   const [q, setQ] = useState<{ move: string; text: string } | null>(null);
   const [draft, setDraft] = useState("");
   const [url, setUrl] = useState<string | null>(null);
@@ -53,6 +70,11 @@ export default function BuildClient() {
           Describe your full-stack app idea. A few focused questions, then download a ready-to-build
           context pack.
         </p>
+        {fromBlueprint && (
+          <p className="text-sm text-black/55 bg-black/[0.03] rounded-xl px-4 py-2">
+            Starting from your VisionAir blueprint — edit if needed, then Start.
+          </p>
+        )}
         <textarea
           className="w-full h-32 rounded-2xl border border-black/10 bg-white px-5 py-4 text-base leading-7 text-black outline-none transition placeholder:text-black/35 focus:border-black/25"
           value={idea}
