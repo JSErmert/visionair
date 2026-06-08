@@ -10,7 +10,7 @@ import ScreenIntro from "@/components/screen-intro";
 import PrimaryButton from "@/components/primary-button";
 
 type Answer = { move: string; question: string; response: string };
-type Phase = "start" | "describe" | "interview" | "building" | "blueprint" | "done" | "error";
+type Phase = "start" | "describe" | "interview" | "building" | "blueprint" | "error";
 
 const DESCRIBE_INTRO: Record<EntryPoint, { title: string; description: string }> = {
   strength: {
@@ -52,7 +52,7 @@ export default function BuildClient() {
         setFromBlueprint(true);
         sessionStorage.removeItem(SEED_KEY);
         setPhase("interview");
-        guard(() => advance([]));
+        guard(() => advance([], seed.idea));
       }
     } catch {
       // ignore malformed seed
@@ -211,23 +211,6 @@ export default function BuildClient() {
           Download your build pack →
         </a>
         <p className="text-sm opacity-70">Unzip into a fresh repo and open it in Claude Code — start with LAUNCH.md.</p>
-      </main>
-    );
-
-  if (phase === "done" && url)
-    return (
-      <main className="mx-auto max-w-2xl p-8 space-y-4">
-        <h2 className="text-xl font-semibold">Your pack is ready.</h2>
-        <a
-          className="inline-block rounded-2xl bg-black px-6 py-3 text-sm font-medium text-white transition hover:bg-black/85"
-          href={url}
-          download="build-mode-pack.zip"
-        >
-          Download ZIP
-        </a>
-        <p className="text-sm text-black/50">
-          Unzip into a fresh repo and open it in Claude Code — start with LAUNCH.md.
-        </p>
       </main>
     );
 
