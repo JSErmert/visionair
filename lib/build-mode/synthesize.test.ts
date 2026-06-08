@@ -83,3 +83,26 @@ describe("known-gaps incorporates extracted gap items", () => {
     expect(gaps?.content).toContain("None — every dimension was covered");
   });
 });
+
+describe("multiple answers per move", () => {
+  it("joins all answers for a move into the synthesis input", async () => {
+    const calls: string[] = [];
+    const askLLM = vi.fn(async (system: string, user: string) => {
+      calls.push(user);
+      return system.includes("OPEN ITEMS") ? "[]" : "# file";
+    });
+    let s = initCoverage("x");
+    s = {
+      ...s,
+      statuses: { ...s.statuses, identity: "covered" },
+      answers: [
+        { move: "identity", question: "q1", response: "ALPHA" },
+        { move: "identity", question: "q2", response: "BETA" },
+      ],
+    };
+    await synthesize(s, askLLM);
+    const synthCall = calls.find((u) => u.includes("DIMENSION: identity"));
+    expect(synthCall).toContain("ALPHA");
+    expect(synthCall).toContain("BETA");
+  });
+});

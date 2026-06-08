@@ -38,13 +38,16 @@ export async function synthesize(
       gaps.push(move);
       continue; // never fabricate content for an uncovered move
     }
-    const answer = s.answers.find((a) => a.move === move);
-    if (!answer) {
+    const moveAnswers = s.answers.filter((a) => a.move === move);
+    if (moveAnswers.length === 0) {
       gaps.push(move);
       continue;
     }
+    // Multiple answers for one move (e.g. original + enhance follow-ups) are
+    // joined so the synthesis deepens the file rather than using only the first.
+    const combined = moveAnswers.map((a) => a.response).join("\n\n---\n\n");
     const system = SYNTH_SYSTEM;
-    const user = `IDEA: ${s.idea}\nDIMENSION: ${move}\nUSER ANSWER: ${answer.response}\n\nReturn markdown.`;
+    const user = `IDEA: ${s.idea}\nDIMENSION: ${move}\nUSER ANSWER: ${combined}\n\nReturn markdown.`;
     const content = (await askLLM(system, user)).trim();
     arts.push({ path: MOVE_ARTIFACT[move], provenance: "elicited", content });
   }

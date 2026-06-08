@@ -81,8 +81,14 @@ export default function LibraryClient() {
     return (
       <ScreenShell>
         <ScreenIntro eyebrow="Your library" title={detail.title} description={detail.idea} />
-        <div className="mb-5">
+        <div className="mb-5 flex items-center justify-between gap-4">
           <SecondaryButton onClick={() => setDetail(null)}>← All sessions</SecondaryButton>
+          <a
+            href={`/build/enhance/${detail.id}`}
+            className="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-black/85"
+          >
+            Enhance →
+          </a>
         </div>
         <div className="flex flex-col gap-3">
           {detail.versions.map((v) => {

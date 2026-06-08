@@ -99,6 +99,27 @@ export async function getSessionWithVersions(
   };
 }
 
+// Append the next version to an existing session (used by Enhance). Computes
+// version_no = max + 1 atomically in the insert. `qa` is the full concatenated
+// history (prior + enhance answers).
+export async function addVersion(
+  sql: SqlClient,
+  sessionId: number,
+  qa: { move: string; question: string; response: string }[],
+  blueprint: string,
+  files: Record<string, string>,
+): Promise<{ versionId: number; versionNo: number }> {
+  const rows = (await sql`
+    INSERT INTO versions (session_id, version_no, qa_json, blueprint_md, files_json)
+    SELECT ${sessionId},
+           COALESCE(MAX(version_no), 0) + 1,
+           ${JSON.stringify(qa)}, ${blueprint}, ${JSON.stringify(files)}
+    FROM versions WHERE session_id = ${sessionId}
+    RETURNING id, version_no`) as { id: number; version_no: number }[];
+  await sql`UPDATE sessions SET updated_at = now() WHERE id = ${sessionId}`;
+  return { versionId: Number(rows[0].id), versionNo: Number(rows[0].version_no) };
+}
+
 export async function listSessions(sql: SqlClient, ownerId: number): Promise<SessionSummary[]> {
   const rows = (await sql`
     SELECT s.id, s.title, s.updated_at,
