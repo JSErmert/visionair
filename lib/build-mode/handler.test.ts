@@ -17,10 +17,13 @@ describe("handleBuild", () => {
     const res = await handleBuild({ action: "question", idea: "x", answers }, llms());
     expect(res).toEqual({ kind: "question", done: true });
   });
-  it("action 'pack' returns a non-empty zip", async () => {
+  it("action 'pack' returns a blueprint and a non-empty zip", async () => {
     const res = await handleBuild({ action: "pack", idea: "x",
       answers: [{ move: "identity", question: "q", response: "a tool" }] }, llms());
     expect(res.kind).toBe("pack");
-    if (res.kind === "pack") expect(res.zip.byteLength).toBeGreaterThan(0);
+    if (res.kind === "pack") {
+      expect(res.blueprint).toMatch(/what i'?m hearing/i);
+      expect(res.zip.byteLength).toBeGreaterThan(0);
+    }
   });
 });

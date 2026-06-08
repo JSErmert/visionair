@@ -5,12 +5,13 @@ import { synthesize } from "./synthesize";
 import { reconcile } from "./reconcile";
 import { assemble } from "./assemble";
 import { pack } from "./pack";
+import { renderBlueprint } from "./blueprint";
 
 export interface BuildRequest { action: "question" | "pack"; idea: string; answers: Answer[]; }
 export type BuildResponse =
   | { kind: "question"; done: false; move: DepthMove; text: string }
   | { kind: "question"; done: true }
-  | { kind: "pack"; zip: Uint8Array };
+  | { kind: "pack"; blueprint: string; zip: Uint8Array };
 
 export async function handleBuild(
   req: BuildRequest,
@@ -23,6 +24,7 @@ export async function handleBuild(
   }
   let elicited = await synthesize(state, llms.synthLLM);
   elicited = await reconcile(elicited, llms.synthLLM);
+  const blueprint = renderBlueprint(elicited);
   const zip = await pack(assemble(elicited));
-  return { kind: "pack", zip };
+  return { kind: "pack", blueprint, zip };
 }

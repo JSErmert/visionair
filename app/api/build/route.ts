@@ -103,11 +103,10 @@ export async function POST(req: NextRequest) {
   try {
     const res = await handleBuild(buildReq, { questionLLM, synthLLM })
     if (res.kind === 'pack') {
-      return new Response(Buffer.from(res.zip), {
-        headers: {
-          'Content-Type': 'application/zip',
-          'Content-Disposition': 'attachment; filename="build-mode-pack.zip"',
-        },
+      return Response.json({
+        kind: 'pack',
+        blueprint: res.blueprint,
+        zipBase64: Buffer.from(res.zip).toString('base64'),
       })
     }
     return Response.json(res)
