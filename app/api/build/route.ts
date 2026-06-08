@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { handleBuild, BuildRequest } from '@/lib/build-mode/handler'
 import { anthropicAskLLM } from '@/lib/build-mode/llm'
 import { DEPTH_MOVES } from '@/lib/build-mode/types'
+import { LIMITS } from '@/lib/build-mode/limits'
 import { OWNER_ID } from '@/lib/build-mode/server-auth'
 import { getSql } from '@/lib/build-mode/db/client'
 import { createSessionWithV1 } from '@/lib/build-mode/db/sessions'
@@ -16,8 +17,8 @@ export const runtime = 'nodejs'
 
 const AnswerSchema = z.object({
   move: z.enum([...DEPTH_MOVES] as [string, ...string[]]),
-  question: z.string().max(4000),
-  response: z.string().max(12000),
+  question: z.string().max(LIMITS.question),
+  response: z.string().max(LIMITS.response),
 })
 
 // ============================================================================
@@ -47,7 +48,7 @@ function buildRateLimitCheck(ip: string): { ok: boolean; retryAfter?: number } {
 const BuildRequestSchema = z
   .object({
     action: z.enum(['question', 'pack']),
-    idea: z.string().min(1).max(24000),
+    idea: z.string().min(1).max(LIMITS.idea),
     answers: z.array(AnswerSchema).max(64).default([]),
     opus: z.boolean().optional(),
   })

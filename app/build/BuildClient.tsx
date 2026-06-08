@@ -4,6 +4,7 @@ import { SEED_KEY, PROGRESS_KEY } from "@/lib/build-mode/seed";
 import type { BuildSeed, BuildProgress } from "@/lib/build-mode/seed";
 import { composeIdea } from "@/lib/build-mode/entry";
 import type { EntryPoint } from "@/lib/build-mode/entry";
+import { LIMITS } from "@/lib/build-mode/limits";
 import StartingPoint from "@/app/session/flow/starting-point";
 import SeedPrompt from "@/app/session/flow/seed-prompt";
 import ScreenShell from "@/components/screen-shell";
@@ -292,11 +293,21 @@ export default function BuildClient() {
         <div className="mb-4">
           <textarea
             value={draft}
-            onChange={(e) => setDraft(e.target.value)}
+            onChange={(e) => setDraft(e.target.value.slice(0, LIMITS.response))}
+            maxLength={LIMITS.response}
             placeholder="Write freely. You do not need to sound polished — just be real."
             rows={10}
             className="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 text-base leading-7 text-black outline-none transition placeholder:text-black/35 focus:border-black/25"
           />
+          <p
+            className={`mt-2 text-right text-xs ${
+              draft.length >= LIMITS.response ? "font-medium text-red-600" : "text-black/40"
+            }`}
+          >
+            {draft.length >= LIMITS.response
+              ? `character limit: ${LIMITS.response.toLocaleString()}`
+              : `${draft.length.toLocaleString()} / ${LIMITS.response.toLocaleString()}`}
+          </p>
         </div>
         <div className="flex items-center justify-between gap-4">
           <SecondaryButton onClick={onBack}>Back</SecondaryButton>
