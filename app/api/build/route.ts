@@ -16,8 +16,8 @@ export const runtime = 'nodejs'
 
 const AnswerSchema = z.object({
   move: z.enum([...DEPTH_MOVES] as [string, ...string[]]),
-  question: z.string().max(2000),
-  response: z.string().max(4000),
+  question: z.string().max(4000),
+  response: z.string().max(12000),
 })
 
 // ============================================================================
@@ -47,7 +47,7 @@ function buildRateLimitCheck(ip: string): { ok: boolean; retryAfter?: number } {
 const BuildRequestSchema = z
   .object({
     action: z.enum(['question', 'pack']),
-    idea: z.string().min(1).max(4000),
+    idea: z.string().min(1).max(24000),
     answers: z.array(AnswerSchema).max(64).default([]),
     opus: z.boolean().optional(),
   })
@@ -83,8 +83,11 @@ export async function POST(req: NextRequest) {
 
   const parsed = BuildRequestSchema.safeParse(raw)
   if (!parsed.success) {
+    const detail = parsed.error.issues
+      .map((i) => `${i.path.join('.') || '(root)'}: ${i.message}`)
+      .join('; ')
     return Response.json(
-      { error: 'invalid request', details: parsed.error.flatten() },
+      { error: 'invalid request', detail, details: parsed.error.flatten() },
       { status: 400 },
     )
   }
