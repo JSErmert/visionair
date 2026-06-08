@@ -33,6 +33,7 @@ export default function BuildClient() {
 
   const [url, setUrl] = useState<string | null>(null);
   const [blueprint, setBlueprint] = useState("");
+  const [saved, setSaved] = useState<{ sessionId: number; versionNo: number } | null>(null);
   const [err, setErr] = useState("");
 
   useEffect(() => {
@@ -130,10 +131,11 @@ export default function BuildClient() {
       const j = (await packR.json().catch(() => ({}))) as { error?: string; detail?: string };
       throw new Error(j.detail || j.error || "build failed");
     }
-    const packData = await packR.json(); // { blueprint, zipBase64 }
+    const packData = await packR.json(); // { blueprint, zipBase64, saved? }
     const bytes = Uint8Array.from(atob(packData.zipBase64), (c) => c.charCodeAt(0));
     const blob = new Blob([bytes], { type: "application/zip" });
     setBlueprint(packData.blueprint);
+    setSaved(packData.saved ?? null);
     setUrl(URL.createObjectURL(blob));
     setPhase("blueprint");
     clearProgress();
@@ -315,6 +317,11 @@ export default function BuildClient() {
   if (phase === "blueprint" && url)
     return (
       <ScreenShell>
+        {saved && (
+          <p className="mb-4 text-sm text-black/55 bg-black/[0.03] rounded-xl px-4 py-2">
+            Saved as V{saved.versionNo} to your library.
+          </p>
+        )}
         <pre className="whitespace-pre-wrap text-sm leading-relaxed mb-5">{blueprint}</pre>
         <a
           className="inline-block rounded bg-black px-4 py-2 text-white"
