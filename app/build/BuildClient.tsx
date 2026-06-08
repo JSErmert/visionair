@@ -317,9 +317,16 @@ export default function BuildClient() {
   if (phase === "blueprint" && url)
     return (
       <ScreenShell>
-        {saved && (
-          <p className="mb-4 text-sm text-black/55 bg-black/[0.03] rounded-xl px-4 py-2">
-            Saved as V{saved.versionNo} to your library.
+        {saved ? (
+          <p className="mb-4 text-sm text-black/60 bg-black/[0.03] rounded-xl px-4 py-2">
+            Saved as <strong>V{saved.versionNo}</strong> to your library.{" "}
+            <a href="/build/library" className="underline hover:text-black">
+              View your library →
+            </a>
+          </p>
+        ) : (
+          <p className="mb-4 text-sm text-amber-700 bg-amber-50 rounded-xl px-4 py-2">
+            Not saved to your library (storage unavailable). Your pack is still ready to download below.
           </p>
         )}
         <pre className="whitespace-pre-wrap text-sm leading-relaxed mb-5">{blueprint}</pre>
@@ -330,7 +337,16 @@ export default function BuildClient() {
         >
           Download your build pack →
         </a>
-        <p className="mt-3 text-sm opacity-70">Unzip into a fresh repo and open it in Claude Code — start with LAUNCH.md.</p>
+        <p className="mt-3 mb-6 text-sm opacity-70">Unzip into a fresh repo and open it in Claude Code — start with LAUNCH.md.</p>
+        <div className="flex items-center justify-between gap-4 border-t border-black/10 pt-5">
+          <SecondaryButton onClick={startOver}>Start a new build</SecondaryButton>
+          <a
+            href="/build/library"
+            className="text-sm underline text-black/60 hover:text-black"
+          >
+            Go to your library →
+          </a>
+        </div>
       </ScreenShell>
     );
 

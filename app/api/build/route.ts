@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { handleBuild, BuildRequest } from '@/lib/build-mode/handler'
 import { anthropicAskLLM } from '@/lib/build-mode/llm'
 import { DEPTH_MOVES } from '@/lib/build-mode/types'
-import { isOwner, OWNER_ID } from '@/lib/build-mode/server-auth'
+import { OWNER_ID } from '@/lib/build-mode/server-auth'
 import { getSql } from '@/lib/build-mode/db/client'
 import { createSessionWithV1 } from '@/lib/build-mode/db/sessions'
 import { generateTitle } from '@/lib/build-mode/title'
@@ -107,30 +107,31 @@ export async function POST(req: NextRequest) {
   try {
     const res = await handleBuild(buildReq, { questionLLM, synthLLM })
     if (res.kind === 'pack') {
-      // Persist as Version 1 only when an authenticated owner is present. A DB
-      // hiccup must never block the download — persistence is best-effort.
+      // Persist as Version 1. Local single-user: save is automatic (the
+      // operator's library, owner 1). A DB hiccup must never block the
+      // download — persistence is best-effort.
+      // SECURITY TODO (before any public deploy): re-gate this behind isOwner()
+      // so strangers hitting the public /build cannot write to the DB.
       let saved: { sessionId: number; versionNo: number } | undefined
-      if (isOwner(req)) {
-        try {
-          const title = await generateTitle(
-            body.idea,
-            res.files['docs/context/00-identity.md'] ?? '',
-            synthLLM,
-          )
-          const out = await createSessionWithV1(getSql(), {
-            ownerId: OWNER_ID,
-            title,
-            idea: body.idea,
-            entryPoint: '',
-            qa: body.answers,
-            blueprint: res.blueprint,
-            files: res.files,
-          })
-          saved = { sessionId: out.sessionId, versionNo: out.versionNo }
-        } catch (e) {
-          // eslint-disable-next-line no-console
-          console.error('[build] persist failed:', e)
-        }
+      try {
+        const title = await generateTitle(
+          body.idea,
+          res.files['docs/context/00-identity.md'] ?? '',
+          synthLLM,
+        )
+        const out = await createSessionWithV1(getSql(), {
+          ownerId: OWNER_ID,
+          title,
+          idea: body.idea,
+          entryPoint: '',
+          qa: body.answers,
+          blueprint: res.blueprint,
+          files: res.files,
+        })
+        saved = { sessionId: out.sessionId, versionNo: out.versionNo }
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error('[build] persist failed:', e)
       }
       return Response.json({
         kind: 'pack',
