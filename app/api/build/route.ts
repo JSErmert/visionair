@@ -111,6 +111,12 @@ export async function POST(req: NextRequest) {
     }
     return Response.json(res)
   } catch (e) {
-    return Response.json({ error: 'build failed' }, { status: 500 })
+    // Surface the real cause. Previously this swallowed everything into an
+    // opaque "build failed", which hid transient rate-limit/overload errors.
+    // eslint-disable-next-line no-console
+    console.error('[build] pack failed:', e)
+    const detail =
+      process.env.NODE_ENV !== 'production' && e instanceof Error ? e.message : undefined
+    return Response.json({ error: 'build failed', detail }, { status: 500 })
   }
 }
