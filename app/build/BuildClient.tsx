@@ -4,7 +4,7 @@ import { SEED_KEY } from "@/lib/build-mode/seed";
 import type { BuildSeed } from "@/lib/build-mode/seed";
 
 type Answer = { move: string; question: string; response: string };
-type Phase = "idea" | "interview" | "building" | "done" | "error";
+type Phase = "idea" | "interview" | "building" | "blueprint" | "done" | "error";
 
 export default function BuildClient() {
   const [phase, setPhase] = useState<Phase>("idea");
@@ -28,6 +28,7 @@ export default function BuildClient() {
   const [q, setQ] = useState<{ move: string; text: string } | null>(null);
   const [draft, setDraft] = useState("");
   const [url, setUrl] = useState<string | null>(null);
+  const [blueprint, setBlueprint] = useState("");
   const [err, setErr] = useState("");
 
   async function post(action: "question" | "pack", nextAnswers: Answer[]) {
@@ -45,10 +46,18 @@ export default function BuildClient() {
     const data = await r.json();
     if (data.done) {
       setPhase("building");
-      const packR = await post("pack", nextAnswers);
-      const blob = await packR.blob();
+      const packR = await fetch("/api/build", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "pack", idea, answers: nextAnswers }),
+      });
+      if (!packR.ok) throw new Error((await packR.json().catch(() => ({}))).error || "build failed");
+      const packData = await packR.json(); // { blueprint, zipBase64 }
+      const bytes = Uint8Array.from(atob(packData.zipBase64), (c) => c.charCodeAt(0));
+      const blob = new Blob([bytes], { type: "application/zip" });
+      setBlueprint(packData.blueprint);
       setUrl(URL.createObjectURL(blob));
-      setPhase("done");
+      setPhase("blueprint");
     } else {
       setQ({ move: data.move, text: data.text });
       setDraft("");
@@ -65,10 +74,10 @@ export default function BuildClient() {
   if (phase === "idea")
     return (
       <main className="mx-auto max-w-2xl p-8 space-y-4">
-        <h1 className="text-2xl font-semibold">Build Mode — context pack for Claude Code</h1>
+        <h1 className="text-2xl font-semibold">Let's begin with what feels real.</h1>
         <p className="text-sm text-black/50">
-          Describe your full-stack app idea. A few focused questions, then download a ready-to-build
-          context pack.
+          A few questions, in your words — then a blueprint and a ready-to-build pack. You do not
+          need a title first.
         </p>
         {fromBlueprint && (
           <p className="text-sm text-black/55 bg-black/[0.03] rounded-xl px-4 py-2">
@@ -127,6 +136,21 @@ export default function BuildClient() {
     return (
       <main className="mx-auto max-w-2xl p-8">
         <p className="text-base text-black/70">Engineering your context pack…</p>
+      </main>
+    );
+
+  if (phase === "blueprint" && url)
+    return (
+      <main className="mx-auto max-w-2xl p-8 space-y-5">
+        <pre className="whitespace-pre-wrap text-sm leading-relaxed">{blueprint}</pre>
+        <a
+          className="inline-block rounded bg-black px-4 py-2 text-white"
+          href={url}
+          download="build-mode-pack.zip"
+        >
+          Download your build pack →
+        </a>
+        <p className="text-sm opacity-70">Unzip into a fresh repo and open it in Claude Code — start with LAUNCH.md.</p>
       </main>
     );
 
