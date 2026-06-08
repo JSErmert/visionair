@@ -5,12 +5,18 @@ import ScreenIntro from "@/components/screen-intro";
 import PrimaryButton from "@/components/primary-button";
 
 export default function LoginClient({ next }: { next: string }) {
-  const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
 
-  async function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    // Read from the form (not React state) so password-manager autofill is
+    // captured even when it doesn't fire a change event.
+    const password = String(new FormData(e.currentTarget).get("password") || "");
+    if (!password) {
+      setErr("Enter your owner password (see secrets/owner-password.txt).");
+      return;
+    }
     setErr("");
     setBusy(true);
     try {
@@ -23,7 +29,7 @@ export default function LoginClient({ next }: { next: string }) {
         window.location.href = next;
         return;
       }
-      if (r.status === 401) setErr("Incorrect password.");
+      if (r.status === 401) setErr("Incorrect password. Use the one in secrets/owner-password.txt (not the database password).");
       else if (r.status === 503) setErr("Auth is not configured on the server.");
       else setErr("Could not sign in. Try again.");
     } catch {
@@ -38,15 +44,15 @@ export default function LoginClient({ next }: { next: string }) {
       <ScreenIntro
         eyebrow="Your library"
         title="Sign in"
-        description="This area — your saved sessions and Enhance — is private to you."
+        description="This area — your saved sessions and Enhance — is private to you. Use the owner password in secrets/owner-password.txt (not your database password)."
       />
       <form onSubmit={submit}>
         <input
           type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          name="password"
           placeholder="Owner password"
           autoFocus
+          autoComplete="current-password"
           className="mb-3 w-full rounded-2xl border border-black/10 bg-white px-5 py-3 text-base text-black outline-none transition placeholder:text-black/35 focus:border-black/25"
         />
         {err && <p className="mb-3 text-sm text-red-600">{err}</p>}
@@ -54,9 +60,7 @@ export default function LoginClient({ next }: { next: string }) {
           <a href="/build" className="text-sm underline text-black/55 hover:text-black">
             ← New build
           </a>
-          <PrimaryButton disabled={busy || password.length === 0} onClick={() => {}}>
-            {busy ? "Signing in…" : "Sign in"}
-          </PrimaryButton>
+          <PrimaryButton disabled={busy}>{busy ? "Signing in…" : "Sign in"}</PrimaryButton>
         </div>
       </form>
     </ScreenShell>
