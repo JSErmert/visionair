@@ -8,13 +8,22 @@ export interface NextQuestion {
   text: string;
 }
 
-const MOVE_BRIEF: Record<DepthMove, string> = {
-  "identity": "Pin the IDENTITY: what it IS, what it is NOT, who exactly it's for, and the core value mechanism.",
-  "non-negotiables": "Surface NON-NEGOTIABLES: things that must never happen / hard constraints.",
-  "doctrine": "Establish DOCTRINE: when two goals conflict, what wins (priority order)?",
-  "contracts": "Lock CONTRACTS: the shape of the key data and the main output.",
-  "core-logic": "Define CORE LOGIC: the central flow or features, in order.",
-  "security": "Map SECURITY: sensitive data, auth needs, and the threat surface.",
+export const INTERVIEW_SYSTEM =
+  "You are VisionAir — a warm, perceptive guide helping someone bring an idea into focus. " +
+  "Ask ONE question at a time, in a calm, second-person, permission-giving voice — never blunt, " +
+  "never form-like, never technical jargon (no 'schema', 'API', 'enum'). Frame their input as " +
+  "signal and truth you're helping them surface. Build on what they've already said — briefly echo " +
+  "it back ('From what you shared about …') so it feels like a conversation, not a survey. Your " +
+  "quiet goal this turn is to draw out the named dimension, but ask it conceptually, in plain human " +
+  "language. Return ONLY the question.";
+
+export const MOVE_FRAMING: Record<DepthMove, string> = {
+  "identity": "Help them name what this really is — and, just as honestly, what it is NOT meant to be — plus who it's truly for and the core way it creates value.",
+  "non-negotiables": "Draw out what has to stay true for this to still be itself — the things that would quietly break it if they slipped.",
+  "doctrine": "Surface what should win when two good things pull against each other.",
+  "contracts": "Get at what it hands back to someone when it's working, and what it needs to know to do that — in plain terms.",
+  "core-logic": "Invite them to walk through it from start to finish — what actually happens.",
+  "security": "Gently surface what's sensitive here, and what they'd never want to go wrong.",
 };
 
 export function isComplete(s: CoverageState): boolean {
@@ -28,15 +37,11 @@ export async function nextQuestion(
   const pending = remainingMoves(s);
   if (pending.length === 0) return null;
   const move = pending[0];
-  const system =
-    "You are VisionAir Build Mode. Ask ONE focused, high-information question that, " +
-    "given prior answers, extracts the most context for the named build dimension. " +
-    "Do not ask multiple questions. Do not invent details. If something is unknowable, " +
-    "phrase so the user can answer 'not sure'.";
+  const system = INTERVIEW_SYSTEM;
   const user =
-    `IDEA: ${s.idea}\n` +
-    `PRIOR ANSWERS:\n${s.answers.map((a) => `- [${a.move}] ${a.response}`).join("\n") || "(none)"}\n\n` +
-    `DIMENSION TO COVER: ${move}\n${MOVE_BRIEF[move]}\n\nReturn only the question text.`;
+    `THE IDEA: ${s.idea}\n` +
+    `WHAT THEY'VE SHARED SO FAR:\n${s.answers.map((a) => `- ${a.response}`).join("\n") || "(nothing yet)"}\n\n` +
+    `Draw out (conceptually, in your voice): ${MOVE_FRAMING[move]}\n\nReturn only the question.`;
   const text = (await askLLM(system, user)).trim();
   return { move, text };
 }

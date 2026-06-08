@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { initCoverage, markUnknown, applyAnswer } from "./coverage-model";
-import { nextQuestion, isComplete } from "./interview";
+import { nextQuestion, isComplete, INTERVIEW_SYSTEM, MOVE_FRAMING } from "./interview";
 
 describe("interview engine", () => {
   it("is not complete while moves are pending", () => {
@@ -33,5 +33,19 @@ describe("interview engine", () => {
     }
     expect(await nextQuestion(s, askLLM)).toBeNull();
     expect(askLLM).not.toHaveBeenCalled();
+  });
+});
+
+describe("OG-voiced question generation", () => {
+  it("system prompt encodes the OG voice (one question, plain/non-technical, builds on prior)", () => {
+    expect(INTERVIEW_SYSTEM).toMatch(/one question/i);
+    expect(INTERVIEW_SYSTEM).toMatch(/plain|human|conceptual|not.*technical|no jargon/i);
+    expect(INTERVIEW_SYSTEM).toMatch(/build on|prior|already (said|shared)/i);
+  });
+  it("each move has a conceptual framing; identity draws out IS-NOT", () => {
+    expect(MOVE_FRAMING.identity).toMatch(/not/i);
+    expect(MOVE_FRAMING["non-negotiables"]).toMatch(/stay true|break/i);
+    // not the old blunt wording
+    expect(MOVE_FRAMING.contracts).not.toMatch(/schema/i);
   });
 });
