@@ -23,7 +23,7 @@ export const MOVE_FRAMING: Record<DepthMove, string> = {
   "doctrine": "Surface what should win when two good things pull against each other.",
   "contracts": "Get at what it hands back to someone when it's working, and what it needs to know to do that — in plain terms.",
   "core-logic": "Invite them to walk through it from start to finish — what actually happens.",
-  "security": "Gently surface what's sensitive here, and what they'd never want to go wrong.",
+  "security": "Surface what's genuinely sensitive in how this is built and run — data that must stay protected, secrets or access that could leak, and the ways it could be abused or fail under bad input.",
 };
 
 export function isComplete(s: CoverageState): boolean {

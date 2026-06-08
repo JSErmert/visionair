@@ -1,5 +1,6 @@
 import { CoverageState, DepthMove, DEPTH_MOVES, ElicitedArtifact } from "./types";
 import { AskLLM } from "./interview";
+import { extractGaps } from "./gaps";
 
 // Path numbers match the design spec's context sequence. 05-architecture and
 // 08-workflow are PRESET files (produced by Gate 1 / Plan 2), not elicited from
@@ -15,9 +16,12 @@ const MOVE_ARTIFACT: Record<DepthMove, string> = {
 
 export const SYNTH_SYSTEM =
   "You are VisionAir Build Mode synthesizer. Write a concise, high-depth context file " +
-  "for the named dimension, grounded ONLY in the user's answer. Do not invent facts. " +
-  "If the answer is thin, write only what it supports. If you make any design choice that " +
-  "diverges from the user's answer (e.g. a safer alternative), you MUST add a line " +
+  "for the named dimension, grounded ONLY in the user's answer. Include ONLY content that " +
+  "belongs to this dimension — if the answer also contains material about a different " +
+  "dimension (for example positioning/identity, or open items the user wants to verify " +
+  "later), do not force it into this file. Do not invent facts. If the answer is thin, " +
+  "write only what it supports. If you make any design choice that diverges from the user's " +
+  "answer (e.g. a safer alternative), you MUST add a line " +
   "`> DEVIATION from elicited answer — rationale: <why>` and MUST NOT present the change as " +
   "something the user specified.";
 
@@ -45,14 +49,27 @@ export async function synthesize(
     arts.push({ path: MOVE_ARTIFACT[move], provenance: "elicited", content });
   }
 
+  const extracted = await extractGaps(s.idea, s.answers, arts, askLLM);
+
+  const sections: string[] = [];
+  if (gaps.length) {
+    sections.push(
+      gaps.map((g) => `- **${g}**: not yet specified — confirm before building on it.`).join("\n"),
+    );
+  }
+  if (extracted.length) {
+    sections.push(
+      "## Flagged in your answers (verify before / during build)\n" +
+        extracted.map((it) => `- _[${it.tag}]_ ${it.text}`).join("\n"),
+    );
+  }
+
   arts.push({
     path: "docs/context/07-known-gaps.md",
     provenance: "open",
     content:
       "# Known gaps (resolve before / during build)\n\n" +
-      (gaps.length
-        ? gaps.map((g) => `- **${g}**: not yet specified — confirm before building on it.`).join("\n")
-        : "_None — every dimension was covered._"),
+      (sections.length ? sections.join("\n\n") : "_None — every dimension was covered._"),
   });
 
   return arts;

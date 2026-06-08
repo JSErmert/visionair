@@ -48,4 +48,8 @@ describe("OG-voiced question generation", () => {
     // not the old blunt wording
     expect(MOVE_FRAMING.contracts).not.toMatch(/schema/i);
   });
+  it("security framing steers toward real security, not self-representation", () => {
+    expect(MOVE_FRAMING.security).toMatch(/data|secret|leak|abuse|protect|fail/i);
+    expect(MOVE_FRAMING.security).not.toMatch(/represent|come across|honest|inflat/i);
+  });
 });
