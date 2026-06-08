@@ -5,40 +5,19 @@ import type { BuildSeed } from "@/lib/build-mode/seed";
 import { composeIdea } from "@/lib/build-mode/entry";
 import type { EntryPoint } from "@/lib/build-mode/entry";
 import StartingPoint from "@/app/session/flow/starting-point";
+import SeedPrompt from "@/app/session/flow/seed-prompt";
 import ScreenShell from "@/components/screen-shell";
 import ScreenIntro from "@/components/screen-intro";
 import PrimaryButton from "@/components/primary-button";
+import SecondaryButton from "@/components/secondary-button";
 
 type Answer = { move: string; question: string; response: string };
-type Phase = "start" | "describe" | "interview" | "building" | "blueprint" | "error";
-
-const DESCRIBE_INTRO: Record<EntryPoint, { title: string; description: string }> = {
-  strength: {
-    title: "Tell me what's there.",
-    description: "Describe the capability as concretely as you can — what you do, when you feel most useful, what makes it real.",
-  },
-  problem: {
-    title: "Tell me what's there.",
-    description: "Describe the problem in your own words — what's wrong, who it affects, why it matters to you.",
-  },
-  idea: {
-    title: "Tell me what's there.",
-    description: "Describe the idea as it exists right now — even if it's still unformed. What keeps returning to you?",
-  },
-  direction: {
-    title: "Tell me what's there.",
-    description: "Describe the direction you feel pulled toward — what draws you, even if you can't fully name it yet.",
-  },
-  unsure: {
-    title: "Tell me what's there.",
-    description: "Describe whatever signal you do have — a feeling, a frustration, a recurring thought. Anything real.",
-  },
-};
+type Phase = "start" | "seed" | "interview" | "building" | "blueprint" | "error";
 
 export default function BuildClient() {
   const [phase, setPhase] = useState<Phase>("start");
   const [entryPoint, setEntryPoint] = useState<EntryPoint | "">("");
-  const [description, setDescription] = useState("");
+  const [seedValue, setSeedValue] = useState("");
   const [idea, setIdea] = useState("");
   const [fromBlueprint, setFromBlueprint] = useState(false);
   const [answers, setAnswers] = useState<Answer[]>([]);
@@ -112,45 +91,68 @@ export default function BuildClient() {
       <StartingPoint
         value={entryPoint}
         onSelect={(v) => setEntryPoint(v)}
-        onNext={() => setPhase("describe")}
+        onNext={() => setPhase("seed")}
         onBack={() => {/* no prior step */}}
       />
     );
 
-  if (phase === "describe") {
-    const intro = entryPoint ? DESCRIBE_INTRO[entryPoint as EntryPoint] : DESCRIBE_INTRO.unsure;
+  if (phase === "seed")
+    return (
+      <SeedPrompt
+        entryPoint={entryPoint}
+        value={seedValue}
+        onChange={setSeedValue}
+        onNext={() => {
+          const composed = composeIdea(entryPoint as EntryPoint, seedValue.trim());
+          setIdea(composed);
+          guard(() => advance([], composed));
+        }}
+        onBack={() => setPhase("start")}
+      />
+    );
+
+  if (phase === "interview" && q)
     return (
       <ScreenShell>
         <ScreenIntro
-          eyebrow="Shaping your starting point"
-          title={intro.title}
-          description={intro.description}
+          eyebrow="Discovering your path"
+          title="Let's go a little deeper."
+          description="You do not need to sound polished. A real answer is enough."
         />
         {fromBlueprint && (
           <p className="mb-4 text-sm text-black/55 bg-black/[0.03] rounded-xl px-4 py-2">
-            Starting from your VisionAir blueprint — edit if needed, then Continue.
+            Starting from your VisionAir blueprint.
           </p>
         )}
-        <textarea
-          className="mb-6 w-full h-36 rounded-2xl border border-black/10 bg-white px-5 py-4 text-base leading-7 text-black outline-none transition placeholder:text-black/35 focus:border-black/25"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Write in a real, grounded way — you do not need to sound impressive."
-          autoFocus
-        />
+        <div className="mb-5 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+          <p className="text-base leading-7 text-black/85">{q.text}</p>
+        </div>
+        <div className="mb-4">
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="Write freely. You do not need to sound polished — just be real."
+            rows={10}
+            className="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 text-base leading-7 text-black outline-none transition placeholder:text-black/35 focus:border-black/25"
+          />
+        </div>
         <div className="flex items-center justify-between gap-4">
-          <button
-            className="rounded-2xl border border-black/10 px-4 py-2 text-sm text-black/65 transition hover:border-black/20 hover:text-black"
-            onClick={() => setPhase("start")}
+          <SecondaryButton
+            onClick={() => {
+              setPhase("seed");
+            }}
           >
             Back
-          </button>
+          </SecondaryButton>
           <PrimaryButton
-            disabled={description.trim().length < 4}
+            disabled={draft.trim().length === 0}
             onClick={() => {
-              const composed = composeIdea(entryPoint as EntryPoint, description.trim());
-              setIdea(composed);
-              guard(() => advance([], composed));
+              const na = [
+                ...answers,
+                { move: q.move, question: q.text, response: draft.trim() },
+              ];
+              setAnswers(na);
+              guard(() => advance(na));
             }}
           >
             Continue
@@ -158,51 +160,18 @@ export default function BuildClient() {
         </div>
       </ScreenShell>
     );
-  }
-
-  if (phase === "interview" && q)
-    return (
-      <main className="mx-auto max-w-2xl p-8 space-y-4">
-        <div className="text-xs uppercase tracking-wide text-black/40">
-          {q.move} · {answers.length + 1}
-        </div>
-        <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-          <p className="text-base leading-7 text-black/85">{q.text}</p>
-        </div>
-        <textarea
-          className="w-full h-28 rounded-2xl border border-black/10 bg-white px-5 py-4 text-base leading-7 text-black outline-none transition placeholder:text-black/35 focus:border-black/25"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder="Your answer — or 'not sure' to flag it as a gap"
-        />
-        <button
-          className="rounded-2xl bg-black px-6 py-3 text-sm font-medium text-white transition disabled:opacity-40 hover:bg-black/85"
-          disabled={draft.trim().length === 0}
-          onClick={() => {
-            const na = [
-              ...answers,
-              { move: q.move, question: q.text, response: draft.trim() },
-            ];
-            setAnswers(na);
-            guard(() => advance(na));
-          }}
-        >
-          Next
-        </button>
-      </main>
-    );
 
   if (phase === "building")
     return (
-      <main className="mx-auto max-w-2xl p-8">
+      <ScreenShell>
         <p className="text-base text-black/70">Engineering your context pack…</p>
-      </main>
+      </ScreenShell>
     );
 
   if (phase === "blueprint" && url)
     return (
-      <main className="mx-auto max-w-2xl p-8 space-y-5">
-        <pre className="whitespace-pre-wrap text-sm leading-relaxed">{blueprint}</pre>
+      <ScreenShell>
+        <pre className="whitespace-pre-wrap text-sm leading-relaxed mb-5">{blueprint}</pre>
         <a
           className="inline-block rounded bg-black px-4 py-2 text-white"
           href={url}
@@ -210,13 +179,13 @@ export default function BuildClient() {
         >
           Download your build pack →
         </a>
-        <p className="text-sm opacity-70">Unzip into a fresh repo and open it in Claude Code — start with LAUNCH.md.</p>
-      </main>
+        <p className="mt-3 text-sm opacity-70">Unzip into a fresh repo and open it in Claude Code — start with LAUNCH.md.</p>
+      </ScreenShell>
     );
 
   return (
-    <main className="mx-auto max-w-2xl p-8 space-y-3">
-      <p className="text-red-600">Something went wrong: {err}</p>
+    <ScreenShell>
+      <p className="text-red-600 mb-3">Something went wrong: {err}</p>
       <button
         className="text-sm underline text-black/60 hover:text-black"
         onClick={() => {
@@ -226,6 +195,6 @@ export default function BuildClient() {
       >
         Start over
       </button>
-    </main>
+    </ScreenShell>
   );
 }
