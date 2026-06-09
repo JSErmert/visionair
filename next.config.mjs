@@ -53,17 +53,9 @@ const nextConfig = {
       },
     ]
   },
-  // Root → /session redirect. Temporary (307) — eventually replaced by a
-  // dedicated landing page with explainer copy + "Begin" CTA per Ryan spec.
-  async redirects() {
-    return [
-      {
-        source: '/',
-        destination: '/session',
-        permanent: false,
-      },
-    ]
-  },
+  // Root now serves the dedicated landing page (app/page.tsx) with explainer
+  // copy + "Begin a session" / "Open Build Mode" CTAs, per Ryan spec. The
+  // temporary 307 root->/session redirect it replaced has been removed.
 }
 
 export default nextConfig

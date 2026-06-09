@@ -43,3 +43,13 @@ repos:
         stages: [pre-push]
         pass_filenames: false
         always_run: true
+
+  - repo: local
+    hooks:
+      - id: exogenius-gate
+        name: ExoGenius exogenous critique gate
+        entry: bash scripts/exogenius-gate.sh
+        language: system
+        stages: [pre-push]
+        pass_filenames: false
+        always_run: true

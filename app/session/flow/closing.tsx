@@ -1,8 +1,13 @@
+'use client'
+
+import { useRouter } from 'next/navigation'
 import PrimaryButton from '@/components/primary-button'
 import SecondaryButton from '@/components/secondary-button'
 import ScreenShell from '@/components/screen-shell'
 import type { SessionState, BlueprintSynthesis } from '../page'
 import { downloadBlueprint } from './export-markdown'
+import { SEED_KEY } from '@/lib/build-mode/seed'
+import { sessionToBuildSeed } from '../build-handoff'
 
 type ClosingProps = {
   onRestart?: () => void
@@ -16,6 +21,7 @@ type ClosingProps = {
 }
 
 export default function Closing({ onRestart, state, label, savedAt, synthesis }: ClosingProps) {
+  const router = useRouter()
   const canDownload = !!state
 
   const handleDownload = () => {
@@ -52,6 +58,17 @@ export default function Closing({ onRestart, state, label, savedAt, synthesis }:
             <PrimaryButton onClick={handleDownload}>
               Download your blueprint
             </PrimaryButton>
+          )}
+          {canDownload && (
+            <SecondaryButton
+              onClick={() => {
+                const seed = sessionToBuildSeed(state!, synthesis ?? null)
+                sessionStorage.setItem(SEED_KEY, JSON.stringify(seed))
+                router.push('/build')
+              }}
+            >
+              Turn this into a Claude Code build pack →
+            </SecondaryButton>
           )}
           {onRestart && (
             <SecondaryButton onClick={onRestart}>Begin again</SecondaryButton>
