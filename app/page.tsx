@@ -1,0 +1,53 @@
+import Link from 'next/link'
+import ScreenShell from '@/components/screen-shell'
+
+// Home / front door. v2 = Build Mode only (the /session guided flow stays in the
+// repo but is unlinked; the persona delineation that brings it back arrives in
+// v3). Static server component with real anchor links — renders and navigates
+// with zero client JS (fail-open). Content sits inside the ScreenShell card (the
+// boxed layout app/session uses), Build-Mode-only.
+//
+// Login is OPTIONAL: Build Mode generates a pack without an account; logging in
+// only unlocks the saved library (/api/sessions is the only owner-gated path).
+
+export default function Home() {
+  return (
+    <main className="relative px-6 py-16">
+      <div className="absolute right-5 top-5">
+        <Link
+          href="/build/login"
+          className="text-sm text-black/45 transition hover:text-black/70"
+        >
+          Log in
+        </Link>
+      </div>
+
+      <ScreenShell className="max-w-2xl p-10 text-center">
+        <p className="mb-3 text-sm tracking-wide text-black/50">VisionAir · Build Mode</p>
+
+        <h1 className="mb-5 text-4xl font-semibold tracking-tight text-black">
+          Turn a real idea into a context pack your AI agent can build from.
+        </h1>
+
+        <p className="mx-auto mb-8 max-w-xl text-base leading-7 text-black/70">
+          Build Mode interviews you only about what is missing, then synthesizes a
+          complete, ready-to-build context pack for Claude Code and other AI coding
+          agents — so the agent starts with real structure instead of a blank prompt.
+        </p>
+
+        <div className="flex flex-col items-center gap-4">
+          <Link
+            href="/build"
+            className="inline-flex rounded-2xl border border-black bg-black px-6 py-3 text-sm font-medium text-white transition hover:opacity-90"
+          >
+            Open Build Mode →
+          </Link>
+
+          <p className="text-sm text-black/45">
+            No account needed to try it. Log in to save your library.
+          </p>
+        </div>
+      </ScreenShell>
+    </main>
+  )
+}

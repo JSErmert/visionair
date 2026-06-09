@@ -243,7 +243,10 @@ export default function BuildClient() {
         value={entryPoint}
         onSelect={(v) => setEntryPoint(v)}
         onNext={() => setPhase("seed")}
-        onBack={() => {/* no prior step */}}
+        onBack={() => {
+          // First page: Back returns to the home landing (the front door).
+          window.location.href = "/";
+        }}
       />
     );
 
