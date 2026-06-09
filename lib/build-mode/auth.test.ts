@@ -14,20 +14,20 @@ describe("password hashing", () => {
 
 describe("session token", () => {
   const secret = "test-secret-please-rotate";
-  it("round-trips a freshly signed token", () => {
-    const t = signSession(secret, 1000);
-    expect(verifySession(t, secret, 60_000, 1500)).toBe(true);
+  it("round-trips a freshly signed token and returns the owner id", () => {
+    const t = signSession(secret, 7, 1000);
+    expect(verifySession(t, secret, 60_000, 1500)).toBe(7);
   });
   it("rejects an expired token", () => {
-    const t = signSession(secret, 1000);
-    expect(verifySession(t, secret, 60_000, 100_000)).toBe(false);
+    const t = signSession(secret, 1, 1000);
+    expect(verifySession(t, secret, 60_000, 100_000)).toBeNull();
   });
   it("rejects a tampered token and a wrong secret", () => {
-    const t = signSession(secret, 1000);
-    expect(verifySession(t + "x", secret, 60_000, 1500)).toBe(false);
-    expect(verifySession(t, "other-secret", 60_000, 1500)).toBe(false);
+    const t = signSession(secret, 1, 1000);
+    expect(verifySession(t + "x", secret, 60_000, 1500)).toBeNull();
+    expect(verifySession(t, "other-secret", 60_000, 1500)).toBeNull();
   });
   it("rejects undefined", () => {
-    expect(verifySession(undefined, secret, 60_000, 1500)).toBe(false);
+    expect(verifySession(undefined, secret, 60_000, 1500)).toBeNull();
   });
 });
