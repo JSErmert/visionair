@@ -52,8 +52,17 @@ export interface SessionDetail {
   id: number;
   title: string;
   idea: string;
+  summary: string | null;
   createdAt: string;
   versions: VersionDetail[];
+}
+
+export async function updateSessionSummary(
+  sql: SqlClient,
+  sessionId: number,
+  summary: string,
+): Promise<void> {
+  await sql`UPDATE sessions SET summary = ${summary} WHERE id = ${sessionId}`;
 }
 
 const asJson = <T,>(v: unknown): T => (typeof v === "string" ? JSON.parse(v) : (v as T));
@@ -64,11 +73,12 @@ export async function getSessionWithVersions(
   sessionId: number,
 ): Promise<SessionDetail | null> {
   const s = (await sql`
-    SELECT id, title, idea, created_at FROM sessions
+    SELECT id, title, idea, summary, created_at FROM sessions
     WHERE id = ${sessionId} AND owner_id = ${ownerId}`) as {
     id: number;
     title: string;
     idea: string;
+    summary: string | null;
     created_at: string;
   }[];
   if (!s.length) return null;
@@ -87,6 +97,7 @@ export async function getSessionWithVersions(
     id: Number(s[0].id),
     title: s[0].title,
     idea: s[0].idea,
+    summary: s[0].summary ?? null,
     createdAt: String(s[0].created_at),
     versions: vs.map((v) => ({
       id: Number(v.id),

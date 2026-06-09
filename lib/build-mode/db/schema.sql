@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS versions (
   UNIQUE (session_id, version_no)
 );
 
+ALTER TABLE sessions ADD COLUMN IF NOT EXISTS summary TEXT;
+
 CREATE INDEX IF NOT EXISTS idx_sessions_owner ON sessions(owner_id, updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_versions_session ON versions(session_id, version_no DESC);
 

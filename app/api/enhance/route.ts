@@ -2,8 +2,9 @@ import { NextRequest } from 'next/server'
 import { z } from 'zod'
 import { isOwner, OWNER_ID } from '@/lib/build-mode/server-auth'
 import { getSql } from '@/lib/build-mode/db/client'
-import { getSessionWithVersions, addVersion } from '@/lib/build-mode/db/sessions'
+import { getSessionWithVersions, addVersion, updateSessionSummary } from '@/lib/build-mode/db/sessions'
 import { auditPack, enhanceFinish } from '@/lib/build-mode/enhance'
+import { summarizeSession } from '@/lib/build-mode/summarize'
 import { pack } from '@/lib/build-mode/pack'
 import { anthropicAskLLM } from '@/lib/build-mode/llm'
 import { DEPTH_MOVES, Answer } from '@/lib/build-mode/types'
@@ -67,6 +68,21 @@ export async function POST(req: NextRequest) {
       synthLLM,
     )
     const out = await addVersion(getSql(), body.sessionId, qa, blueprint, files)
+    // Regenerate the library overview to cover all versions through this one.
+    try {
+      const refreshed = await getSessionWithVersions(getSql(), OWNER_ID, body.sessionId)
+      if (refreshed) {
+        const summary = await summarizeSession(
+          refreshed.idea,
+          refreshed.versions.map((v) => ({ versionNo: v.versionNo, qa: v.qa, blueprint: v.blueprint })),
+          synthLLM,
+        )
+        if (summary) await updateSessionSummary(getSql(), body.sessionId, summary)
+      }
+    } catch (e2) {
+      // eslint-disable-next-line no-console
+      console.error('[enhance] summary failed:', e2)
+    }
     return Response.json({
       saved: { sessionId: body.sessionId, versionNo: out.versionNo },
       blueprint,

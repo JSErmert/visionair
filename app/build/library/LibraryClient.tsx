@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import JSZip from "jszip";
 import ScreenShell from "@/components/screen-shell";
 import ScreenIntro from "@/components/screen-intro";
@@ -19,6 +19,7 @@ type SessionDetail = {
   id: number;
   title: string;
   idea: string;
+  summary: string | null;
   createdAt: string;
   versions: VersionDetail[];
 };
@@ -35,6 +36,55 @@ function fmtDate(s: string): string {
   } catch {
     return s;
   }
+}
+
+// Minimal markdown renderer for the session overview (## / ### / - / paragraphs).
+function renderLite(md: string): ReactNode[] {
+  const out: ReactNode[] = [];
+  let bullets: string[] = [];
+  const flush = (key: string) => {
+    if (bullets.length) {
+      out.push(
+        <ul key={key} className="my-2 ml-4 list-disc space-y-1">
+          {bullets.map((b, i) => (
+            <li key={i}>{b}</li>
+          ))}
+        </ul>,
+      );
+      bullets = [];
+    }
+  };
+  md.split("\n").forEach((raw, i) => {
+    const line = raw.trimEnd();
+    if (/^##\s+/.test(line)) {
+      flush(`u${i}`);
+      out.push(
+        <p key={i} className="mt-4 mb-1 text-xs font-semibold uppercase tracking-wide text-black/45">
+          {line.replace(/^##\s+/, "")}
+        </p>,
+      );
+    } else if (/^###\s+/.test(line)) {
+      flush(`u${i}`);
+      out.push(
+        <p key={i} className="mt-2 font-medium text-black/75">
+          {line.replace(/^###\s+/, "")}
+        </p>,
+      );
+    } else if (/^[-*]\s+/.test(line)) {
+      bullets.push(line.replace(/^[-*]\s+/, ""));
+    } else if (line.trim() === "") {
+      flush(`u${i}`);
+    } else {
+      flush(`u${i}`);
+      out.push(
+        <p key={i} className="mb-1">
+          {line}
+        </p>,
+      );
+    }
+  });
+  flush("uend");
+  return out;
 }
 
 async function downloadVersion(title: string, v: VersionDetail) {
@@ -120,7 +170,11 @@ export default function LibraryClient() {
   if (detail) {
     return (
       <ScreenShell>
-        <ScreenIntro eyebrow="Your library" title={detail.title} description={detail.idea} />
+        <ScreenIntro
+          eyebrow="Your library"
+          title={detail.title}
+          description="The current shape of this session, and what each version added."
+        />
         <div className="mb-5 flex items-center justify-between gap-4">
           <SecondaryButton onClick={() => setDetail(null)}>← All sessions</SecondaryButton>
           <a
@@ -129,6 +183,11 @@ export default function LibraryClient() {
           >
             Enhance →
           </a>
+        </div>
+        <div className="mb-6 rounded-2xl border border-black/10 bg-black/[0.02] p-5 text-sm leading-7 text-black/80">
+          {detail.summary && detail.summary.trim()
+            ? renderLite(detail.summary)
+            : <p className="text-black/55">{detail.idea}</p>}
         </div>
         <div className="flex flex-col gap-3">
           {detail.versions.map((v) => {

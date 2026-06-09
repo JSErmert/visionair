@@ -6,8 +6,9 @@ import { DEPTH_MOVES } from '@/lib/build-mode/types'
 import { LIMITS } from '@/lib/build-mode/limits'
 import { isOwner, OWNER_ID } from '@/lib/build-mode/server-auth'
 import { getSql } from '@/lib/build-mode/db/client'
-import { createSessionWithV1 } from '@/lib/build-mode/db/sessions'
+import { createSessionWithV1, updateSessionSummary } from '@/lib/build-mode/db/sessions'
 import { generateTitle } from '@/lib/build-mode/title'
+import { summarizeSession } from '@/lib/build-mode/summarize'
 
 export const runtime = 'nodejs'
 
@@ -132,6 +133,18 @@ export async function POST(req: NextRequest) {
             files: res.files,
           })
           saved = { sessionId: out.sessionId, versionNo: out.versionNo }
+          // Best-effort library overview (current description + per-version story).
+          try {
+            const summary = await summarizeSession(
+              body.idea,
+              [{ versionNo: 1, qa: body.answers, blueprint: res.blueprint }],
+              synthLLM,
+            )
+            if (summary) await updateSessionSummary(getSql(), out.sessionId, summary)
+          } catch (e2) {
+            // eslint-disable-next-line no-console
+            console.error('[build] summary failed:', e2)
+          }
         } catch (e) {
           // eslint-disable-next-line no-console
           console.error('[build] persist failed:', e)
