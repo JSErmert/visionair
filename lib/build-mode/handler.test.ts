@@ -26,4 +26,27 @@ describe("handleBuild", () => {
       expect(res.zip.byteLength).toBeGreaterThan(0);
     }
   });
+
+  // Slice 1 end-to-end: the persona Level set in the selector reaches the question LLM.
+  it("threads the persona Level into the question prompt (beginner gets scaffolding)", async () => {
+    const l = llms("a gentle question");
+    await handleBuild({ action: "question", idea: "a budgeting app", answers: [], level: "beginner" }, l);
+    const [system, user] = l.questionLLM.mock.calls[0];
+    expect(`${system} ${user}`).toMatch(/example/i);
+  });
+
+  it("an expert Level produces a terse, no-examples question prompt for the same idea", async () => {
+    const l = llms("define the contract.");
+    await handleBuild({ action: "question", idea: "a budgeting app", answers: [], level: "expert" }, l);
+    const system = l.questionLLM.mock.calls[0][0] as string;
+    expect(system).toMatch(/terse|brief|concise/i);
+    expect(system).not.toMatch(/example/i);
+  });
+
+  it("omitting Level keeps the original prompt (back-compat for the /session flow)", async () => {
+    const l = llms();
+    await handleBuild({ action: "question", idea: "x", answers: [] }, l);
+    const system = l.questionLLM.mock.calls[0][0] as string;
+    expect(system).not.toMatch(/THIS PERSON IS/i);
+  });
 });

@@ -2,11 +2,8 @@
 import { useState, useEffect } from "react";
 import { SEED_KEY, PROGRESS_KEY } from "@/lib/build-mode/seed";
 import type { BuildSeed, BuildProgress } from "@/lib/build-mode/seed";
-import { composeIdea } from "@/lib/build-mode/entry";
-import type { EntryPoint } from "@/lib/build-mode/entry";
 import { LIMITS } from "@/lib/build-mode/limits";
 import { PERSONA_KEY, type PersonaProfile } from "@/lib/build-mode/persona";
-import StartingPoint from "@/app/session/flow/starting-point";
 import SeedPrompt from "@/app/session/flow/seed-prompt";
 import PersonaSelector from "@/app/build/selector";
 import ScreenShell from "@/components/screen-shell";
@@ -16,16 +13,15 @@ import SecondaryButton from "@/components/secondary-button";
 
 type Answer = { move: string; question: string; response: string };
 type Question = { move: string; text: string };
-type Phase = "persona" | "start" | "seed" | "interview" | "building" | "blueprint" | "error" | "resume";
+type Phase = "welcome" | "persona" | "seed" | "interview" | "building" | "blueprint" | "error" | "resume";
 
 // Neutral starting picks; the selector is where the user actually chooses. Slice 1
 // proceeds only on Build x Claude Code, so those are the safe defaults.
 const DEFAULT_PROFILE: PersonaProfile = { level: "intermediate", purpose: "build", platform: "claude-code" };
 
 export default function BuildClient() {
-  const [phase, setPhase] = useState<Phase>("persona");
+  const [phase, setPhase] = useState<Phase>("welcome");
   const [profile, setProfile] = useState<PersonaProfile>(DEFAULT_PROFILE);
-  const [entryPoint, setEntryPoint] = useState<EntryPoint | "">("");
   const [seedValue, setSeedValue] = useState("");
   const [idea, setIdea] = useState("");
   const [fromBlueprint, setFromBlueprint] = useState(false);
@@ -244,7 +240,7 @@ export default function BuildClient() {
     setComplete(false);
     setErr("");
     setFromBlueprint(false);
-    setPhase("start");
+    setPhase("persona");
   }
 
   const guard = (fn: () => Promise<void>) =>
@@ -252,6 +248,21 @@ export default function BuildClient() {
       setErr(String(e.message || e));
       setPhase("error");
     });
+
+  if (phase === "welcome")
+    return (
+      <ScreenShell>
+        <ScreenIntro
+          eyebrow="Build Mode"
+          title="Let's build your context pack."
+          description="You do not need a perfect idea to begin. Answer a few questions in your own words, and VisionAir turns them into a ready-to-build pack for your AI coding agent."
+        />
+        <div className="flex items-center justify-between gap-4">
+          <SecondaryButton onClick={() => { window.location.href = "/"; }}>Back</SecondaryButton>
+          <PrimaryButton onClick={() => setPhase("persona")}>Begin</PrimaryButton>
+        </div>
+      </ScreenShell>
+    );
 
   if (phase === "persona")
     return (
@@ -265,33 +276,22 @@ export default function BuildClient() {
           } catch {
             // storage unavailable — picks are best-effort
           }
-          setPhase("start");
+          setPhase("seed");
         }}
-        onBack={() => {
-          // First page: Back returns to the home landing (the front door).
-          window.location.href = "/";
-        }}
-      />
-    );
-
-  if (phase === "start")
-    return (
-      <StartingPoint
-        value={entryPoint}
-        onSelect={(v) => setEntryPoint(v)}
-        onNext={() => setPhase("seed")}
-        onBack={() => setPhase("persona")}
+        onBack={() => setPhase("welcome")}
       />
     );
 
   if (phase === "seed")
     return (
       <SeedPrompt
-        entryPoint={entryPoint}
+        entryPoint=""
         value={seedValue}
         onChange={setSeedValue}
         onNext={() => {
-          const composed = composeIdea(entryPoint as EntryPoint, seedValue.trim());
+          // The entry-point slide is absorbed (Slice 1): the seed text IS the idea,
+          // and the selector already captured Purpose. No framing prefix needed.
+          const composed = seedValue.trim();
           setIdea(composed);
           if (questions.length > 0) {
             // Returning forward from Back — keep the existing questions exactly
@@ -304,7 +304,7 @@ export default function BuildClient() {
             guard(() => startInterview(composed));
           }
         }}
-        onBack={() => setPhase("start")}
+        onBack={() => setPhase("persona")}
       />
     );
 
