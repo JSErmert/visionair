@@ -124,7 +124,9 @@ export default function BuildClient() {
     const r = await fetch("/api/build", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action, idea: seedIdea, answers: ans }),
+      // Level forks the interview (Axis 1). Sent on every question so the server
+      // frames each move for this person's agency level.
+      body: JSON.stringify({ action, idea: seedIdea, answers: ans, level: profile.level }),
     });
     if (!r.ok) {
       const j = (await r.json().catch(() => ({}))) as { error?: string; detail?: string };

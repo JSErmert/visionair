@@ -1,6 +1,12 @@
 import { describe, it, expect, vi } from "vitest";
 import { initCoverage, markUnknown, applyAnswer } from "./coverage-model";
-import { nextQuestion, isComplete, INTERVIEW_SYSTEM, MOVE_FRAMING } from "./interview";
+import {
+  nextQuestion,
+  isComplete,
+  levelDirectives,
+  INTERVIEW_SYSTEM,
+  MOVE_FRAMING,
+} from "./interview";
 
 describe("interview engine", () => {
   it("is not complete while moves are pending", () => {
@@ -51,5 +57,58 @@ describe("OG-voiced question generation", () => {
   it("security framing steers toward real security, not self-representation", () => {
     expect(MOVE_FRAMING.security).toMatch(/data|secret|leak|abuse|protect|fail/i);
     expect(MOVE_FRAMING.security).not.toMatch(/represent|come across|honest|inflat/i);
+  });
+});
+
+// The Level fork: the SAME move produces a structurally different prompt by level —
+// not just a tonal nudge. Beginner is scaffolded (examples, plain words, recommend);
+// expert is a terse gap-challenge (no examples, no hand-holding).
+describe("levelDirectives (interview fork by Level)", () => {
+  it("beginner scaffolds: plain language, example answers, recommend a default", () => {
+    const d = levelDirectives("beginner");
+    expect(`${d.system} ${d.user}`).toMatch(/example/i);
+    expect(`${d.system} ${d.user}`).toMatch(/plain|simple word|everyday/i);
+    expect(`${d.system} ${d.user}`).toMatch(/recommend|suggest a (default|starting)/i);
+  });
+
+  it("expert challenges gaps tersely and offers NO examples", () => {
+    const d = levelDirectives("expert");
+    expect(`${d.system} ${d.user}`).toMatch(/terse|brief|concise/i);
+    expect(`${d.system} ${d.user}`).toMatch(/gap|missing|didn'?t (define|specify)|challenge/i);
+    expect(`${d.system} ${d.user}`).not.toMatch(/example/i);
+  });
+
+  it("gives all three levels pairwise-distinct system directives", () => {
+    const systems = (["beginner", "intermediate", "expert"] as const).map(
+      (l) => levelDirectives(l).system
+    );
+    expect(new Set(systems).size).toBe(3);
+  });
+});
+
+describe("nextQuestion threads the Level into the prompt", () => {
+  it("sends beginner scaffolding to the LLM for the same move", async () => {
+    const askLLM = vi.fn().mockResolvedValue("a gentle question");
+    const s = initCoverage("a budgeting app");
+    await nextQuestion(s, askLLM, "beginner");
+    const system = askLLM.mock.calls[0][0] as string;
+    const user = askLLM.mock.calls[0][1] as string;
+    expect(`${system} ${user}`).toMatch(/example/i);
+  });
+
+  it("sends expert gap-challenge framing (terse, no examples) for the same move", async () => {
+    const askLLM = vi.fn().mockResolvedValue("define the auth contract.");
+    const s = initCoverage("a budgeting app");
+    await nextQuestion(s, askLLM, "expert");
+    const system = askLLM.mock.calls[0][0] as string;
+    expect(system).toMatch(/terse|brief|concise/i);
+    expect(system).not.toMatch(/example/i);
+  });
+
+  it("preserves the original prompt verbatim when no level is given (back-compat for /session)", async () => {
+    const askLLM = vi.fn().mockResolvedValue("q");
+    const s = initCoverage("x");
+    await nextQuestion(s, askLLM);
+    expect(askLLM.mock.calls[0][0]).toBe(INTERVIEW_SYSTEM);
   });
 });

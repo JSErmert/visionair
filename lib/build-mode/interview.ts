@@ -1,5 +1,6 @@
 import { CoverageState, DepthMove, DEPTH_MOVES } from "./types";
 import { remainingMoves } from "./coverage-model";
+import type { Level } from "./persona";
 
 export type AskLLM = (system: string, user: string) => Promise<string>;
 
@@ -30,18 +31,57 @@ export function isComplete(s: CoverageState): boolean {
   return DEPTH_MOVES.every((m) => s.statuses[m] !== "pending");
 }
 
+// The Level fork (Axis 1). Level is an AGENCY dial: it changes how much the engine
+// guides vs challenges, never the coverage it pursues or the honesty rails. The SAME
+// move is asked of everyone — only the framing shifts. Returns prompt fragments
+// appended to the base system/user prompts; an absent level changes nothing (the
+// /session flow keeps its exact original voice).
+export function levelDirectives(level: Level): { system: string; user: string } {
+  switch (level) {
+    case "beginner":
+      return {
+        system:
+          " THIS PERSON IS NEW. Use plain, everyday words and define any unavoidable term in simple language. " +
+          "Be warm and permission-giving — make a blank page feel safe. Recommend a sensible default rather than " +
+          "demanding they decide unaided. The engine owns the HOW; they own the WHAT and WHY.",
+        user:
+          "\n\nBecause they are new: offer two or three short example answers they can react to and adjust, " +
+          "and gently suggest a starting default. Never make them feel they should already know the answer.",
+      };
+    case "intermediate":
+      return {
+        system:
+          " THIS PERSON KNOWS THEIR GOAL. Be efficient and neutral: help them organize and structure their " +
+          "thinking and quietly fill gaps they don't surface, without over-explaining or hand-holding.",
+        user:
+          "\n\nKeep it crisp: structure their thinking and fill the gap conceptually; offer an example only if the question is genuinely ambiguous.",
+      };
+    case "expert":
+      return {
+        system:
+          " THIS PERSON IS FLUENT AND WANTS PRECISION. Drop the soft framing: be terse and direct. Skip anything " +
+          "obvious. Name the specific gap and challenge it (e.g. 'you haven't defined X'). No sample answers, no " +
+          "encouragement padding, no hand-holding — give them the control and prove the engine's worth fast.",
+        user:
+          "\n\nBe brief and technical. Surface the missing decision directly as a gap to close. Do not hand them ready-made answers.",
+      };
+  }
+}
+
 export async function nextQuestion(
   s: CoverageState,
   askLLM: AskLLM,
+  level?: Level,
 ): Promise<NextQuestion | null> {
   const pending = remainingMoves(s);
   if (pending.length === 0) return null;
   const move = pending[0];
-  const system = INTERVIEW_SYSTEM;
+  const dir = level ? levelDirectives(level) : { system: "", user: "" };
+  const system = INTERVIEW_SYSTEM + dir.system;
   const user =
     `THE IDEA: ${s.idea}\n` +
     `WHAT THEY'VE SHARED SO FAR:\n${s.answers.map((a) => `- ${a.response}`).join("\n") || "(nothing yet)"}\n\n` +
-    `Draw out (conceptually, in your voice): ${MOVE_FRAMING[move]}\n\nReturn only the question.`;
+    `Draw out (conceptually, in your voice): ${MOVE_FRAMING[move]}${dir.user}\n\nReturn only the question.`;
   const text = (await askLLM(system, user)).trim();
   return { move, text };
 }

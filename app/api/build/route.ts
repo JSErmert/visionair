@@ -51,6 +51,7 @@ const BuildRequestSchema = z
     action: z.enum(['question', 'pack']),
     idea: z.string().min(1).max(LIMITS.idea),
     answers: z.array(AnswerSchema).max(64).default([]),
+    level: z.enum(['beginner', 'intermediate', 'expert']).optional(),
     opus: z.boolean().optional(),
   })
   .strict()
@@ -107,6 +108,7 @@ export async function POST(req: NextRequest) {
     action: body.action,
     idea: body.idea,
     answers: body.answers as BuildRequest['answers'],
+    level: body.level,
   }
 
   try {
