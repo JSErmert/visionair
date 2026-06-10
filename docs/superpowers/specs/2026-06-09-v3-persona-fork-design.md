@@ -108,3 +108,71 @@ seed prompt (gentler for Beginners).
   attaches at the Build/Claude-Code packaging path.
 - Independent of Pillar A (accounts) at the engine level, but a logged-in user's
   selections + history can later inform smart defaults.
+
+## Level is an AGENCY dial, not a skill dial (the north star)
+
+The operator's per-level characterizations revealed the real variable: each level
+wants the tool to **respect and extend the agency they already have — never reduce
+it.** The failure mode for all three is the same sin (reducing agency). This IS the
+democratize-tech mission: agency over technology, calibrated to where you stand.
+
+| Level | Feeling to produce | Agency move | Anti-pattern (never) |
+|---|---|---|---|
+| **Beginner** | heard, personal; in control of the *vision* while best practices are handled for them | GRANT agency they lack: engine owns the HOW, user owns the WHAT/WHY | make them feel dumb; ask what they can't answer; over-interrogate (warmth ≠ slowness) |
+| **Intermediate** | "I can build something powerful, guided to it" — amplification | EXTEND their reach: structure + fill the gaps they don't know | cap their ambition; treat as beginner; under-deliver on the power |
+| **Expert** | unrestricted, precise, able to lean into specificity; testing the engine | DON'T take agency away: skip the obvious, give the controls, prove worth fast | obvious questions; restriction; slowness; treating as beginner |
+
+Caveats locked: Level is **agency, not technical identity** (a non-technical domain
+expert can be Intermediate/Expert). Expert "unrestricted" ≠ no rigor — they *want*
+gaps caught (respect), just not the obvious. Beginner warmth ≠ verbosity — pair it
+with the good-enough-stop.
+
+## The PersonaProfile object (one threaded parameter)
+
+One object set by the selector, read by interview + synthesis + packaging. A future
+axis = a new field, never scattered conditionals.
+
+```
+PersonaProfile {
+  level:    'beginner' | 'intermediate' | 'expert'                              // -> interview
+  purpose:  'build' | 'operate' | 'automate' | 'decide' | 'assist' | 'unsure'   // -> content
+  platform: 'claude-code' | 'claude-ai' | 'chatgpt'                             // -> packaging
+}
+// Level derives interview behaviour (the agency dial):
+//   beginner:     { depth: guided,     voice: warm,    offerExamples: true,     stance: 'fill',      explainTerms: true  }
+//   intermediate: { depth: structured, voice: neutral, offerExamples: optional, stance: 'organize',  explainTerms: false }
+//   expert:       { depth: gap-only,   voice: terse,   offerExamples: false,    stance: 'challenge', explainTerms: false }
+```
+
+**Adapt-don't-cage rule:** the selected level is a STARTING point, not a lock. If a
+self-declared Beginner answers like an Expert (precise, technical), the engine quietly
+offers to level up (and vice versa). Self-ID is unreliable; adapt from first answers.
+
+## Slice 1 — first buildable increment (proves the mechanism end to end)
+
+Goal: selector + a REAL Level fork on the interview; **Build × Claude Code only**.
+
+1. **`PersonaProfile` type + Level-behaviour derivation** (`lib/build-mode`) — pure,
+   unit-tested against the agency-dial table.
+2. **Selector UI** (new screen ahead of `BuildClient` phases): Purpose cards · Level ·
+   Platform (default-from-purpose). Persist alongside seed/progress. Other
+   Purposes/Platforms shown but **"coming soon"** (only Build × Claude Code proceeds).
+3. **Welcome screen** (warm, no input) before the selector.
+4. **Thread the profile** into the interview: parameterize question framing +
+   example-answer density + fill-vs-challenge stance by Level. Content + packaging stay
+   the existing Build × Claude Code path.
+5. **Absorb** the old entry-point slide ("unsure" → Purpose "Not sure"; framing → seed).
+6. **Tests (TDD):** Level→behaviour derivation; selector persists; interview reads the
+   profile.
+
+**Acceptance:** same idea, Beginner vs Expert → demonstrably different interview
+(warmth, # questions, examples, fill-vs-challenge), not just tone; Build × Claude Code
+output unchanged; other cells visibly "coming soon."
+
+**Next slices:** Purpose #2 = **Operate** (distill output structure from
+muscle-pt/chef-fina-os) → content template → Claude.ai packager → rest of the matrix +
+the "Not sure" discovery sub-flow.
+
+> RESUME POINT: this spec is the complete buildable plan. A fresh context starts at
+> "Slice 1, step 1" on branch `feat/v3-persona` (which includes Pillar A). Nothing in
+> the design is unresolved.
