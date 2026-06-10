@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { isOwner, OWNER_ID } from '@/lib/build-mode/server-auth'
+import { getOwnerId } from '@/lib/build-mode/server-auth'
 import { getSql } from '@/lib/build-mode/db/client'
 import { getSessionWithVersions, deleteSession } from '@/lib/build-mode/db/sessions'
 
@@ -12,12 +12,13 @@ function parseId(id: string): number | null {
 
 // GET /api/sessions/:id -> one session with its versions (newest first). Owner-gated.
 export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
-  if (!isOwner(req)) return Response.json({ error: 'unauthorized' }, { status: 401 })
+  const ownerId = getOwnerId(req)
+  if (ownerId === null) return Response.json({ error: 'unauthorized' }, { status: 401 })
   const { id } = await ctx.params
   const sessionId = parseId(id)
   if (sessionId === null) return Response.json({ error: 'bad id' }, { status: 400 })
   try {
-    const session = await getSessionWithVersions(getSql(), OWNER_ID, sessionId)
+    const session = await getSessionWithVersions(getSql(), ownerId, sessionId)
     if (!session) return Response.json({ error: 'not found' }, { status: 404 })
     return Response.json({ session })
   } catch (e) {
@@ -29,12 +30,13 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
 
 // DELETE /api/sessions/:id -> remove the session and all its versions. Owner-gated.
 export async function DELETE(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
-  if (!isOwner(req)) return Response.json({ error: 'unauthorized' }, { status: 401 })
+  const ownerId = getOwnerId(req)
+  if (ownerId === null) return Response.json({ error: 'unauthorized' }, { status: 401 })
   const { id } = await ctx.params
   const sessionId = parseId(id)
   if (sessionId === null) return Response.json({ error: 'bad id' }, { status: 400 })
   try {
-    const removed = await deleteSession(getSql(), OWNER_ID, sessionId)
+    const removed = await deleteSession(getSql(), ownerId, sessionId)
     if (removed === 0) return Response.json({ error: 'not found' }, { status: 404 })
     return Response.json({ ok: true })
   } catch (e) {

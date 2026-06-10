@@ -4,7 +4,7 @@ import { handleBuild, BuildRequest } from '@/lib/build-mode/handler'
 import { anthropicAskLLM } from '@/lib/build-mode/llm'
 import { DEPTH_MOVES } from '@/lib/build-mode/types'
 import { LIMITS } from '@/lib/build-mode/limits'
-import { isOwner, OWNER_ID } from '@/lib/build-mode/server-auth'
+import { getOwnerId } from '@/lib/build-mode/server-auth'
 import { getSql } from '@/lib/build-mode/db/client'
 import { createSessionWithV1, updateSessionSummary } from '@/lib/build-mode/db/sessions'
 import { generateTitle } from '@/lib/build-mode/title'
@@ -116,7 +116,8 @@ export async function POST(req: NextRequest) {
       // itself stays open (anyone can generate a pack), but writing to the
       // library requires login. A DB hiccup must never block the download.
       let saved: { sessionId: number; versionNo: number } | undefined
-      if (isOwner(req)) {
+      const ownerId = getOwnerId(req)
+      if (ownerId !== null) {
         try {
           const title = await generateTitle(
             body.idea,
@@ -124,7 +125,7 @@ export async function POST(req: NextRequest) {
             synthLLM,
           )
           const out = await createSessionWithV1(getSql(), {
-            ownerId: OWNER_ID,
+            ownerId,
             title,
             idea: body.idea,
             entryPoint: '',
