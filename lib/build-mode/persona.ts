@@ -60,3 +60,27 @@ const LEVEL_BEHAVIOUR: Record<Level, LevelBehaviour> = {
 export function levelBehaviour(level: Level): LevelBehaviour {
   return LEVEL_BEHAVIOUR[level];
 }
+
+// Suggested-default packaging per purpose. A suggestion, never a lock: the selector
+// pre-fills this and leaves the other platforms one click away.
+const PLATFORM_DEFAULT: Record<Purpose, Platform> = {
+  build: "claude-code", // code wants a coding agent
+  operate: "claude-ai", // a governed corpus = a Claude Project
+  automate: "claude-ai", // most workflow-opt is business process
+  decide: "claude-ai", // reasoning-heavy thinking partner
+  assist: "chatgpt", // most accessible for a personal helper
+  unsure: "claude-ai", // neutral until discovery picks a real purpose
+};
+
+export function defaultPlatformForPurpose(purpose: Purpose): Platform {
+  return PLATFORM_DEFAULT[purpose];
+}
+
+// Slice 1 ships only the Build x Claude Code cell end to end; every other cell is
+// "coming soon". Level never gates — all three levels proceed.
+export function canProceed(profile: PersonaProfile): boolean {
+  return profile.purpose === "build" && profile.platform === "claude-code";
+}
+
+// Persisted alongside the seed/progress so a refresh keeps the three picks.
+export const PERSONA_KEY = "buildmode:persona";

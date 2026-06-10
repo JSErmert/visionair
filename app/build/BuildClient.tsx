@@ -5,8 +5,10 @@ import type { BuildSeed, BuildProgress } from "@/lib/build-mode/seed";
 import { composeIdea } from "@/lib/build-mode/entry";
 import type { EntryPoint } from "@/lib/build-mode/entry";
 import { LIMITS } from "@/lib/build-mode/limits";
+import { PERSONA_KEY, type PersonaProfile } from "@/lib/build-mode/persona";
 import StartingPoint from "@/app/session/flow/starting-point";
 import SeedPrompt from "@/app/session/flow/seed-prompt";
+import PersonaSelector from "@/app/build/selector";
 import ScreenShell from "@/components/screen-shell";
 import ScreenIntro from "@/components/screen-intro";
 import PrimaryButton from "@/components/primary-button";
@@ -14,10 +16,15 @@ import SecondaryButton from "@/components/secondary-button";
 
 type Answer = { move: string; question: string; response: string };
 type Question = { move: string; text: string };
-type Phase = "start" | "seed" | "interview" | "building" | "blueprint" | "error" | "resume";
+type Phase = "persona" | "start" | "seed" | "interview" | "building" | "blueprint" | "error" | "resume";
+
+// Neutral starting picks; the selector is where the user actually chooses. Slice 1
+// proceeds only on Build x Claude Code, so those are the safe defaults.
+const DEFAULT_PROFILE: PersonaProfile = { level: "intermediate", purpose: "build", platform: "claude-code" };
 
 export default function BuildClient() {
-  const [phase, setPhase] = useState<Phase>("start");
+  const [phase, setPhase] = useState<Phase>("persona");
+  const [profile, setProfile] = useState<PersonaProfile>(DEFAULT_PROFILE);
   const [entryPoint, setEntryPoint] = useState<EntryPoint | "">("");
   const [seedValue, setSeedValue] = useState("");
   const [idea, setIdea] = useState("");
@@ -38,6 +45,13 @@ export default function BuildClient() {
   const [err, setErr] = useState("");
 
   useEffect(() => {
+    // Restore the persona picks first so a refresh keeps them on any phase.
+    try {
+      const rawProfile = sessionStorage.getItem(PERSONA_KEY);
+      if (rawProfile) setProfile(JSON.parse(rawProfile) as PersonaProfile);
+    } catch {
+      // ignore malformed profile
+    }
     // A fresh seed handed off from /session always wins over saved progress.
     try {
       const raw = sessionStorage.getItem(SEED_KEY);
@@ -237,16 +251,34 @@ export default function BuildClient() {
       setPhase("error");
     });
 
+  if (phase === "persona")
+    return (
+      <PersonaSelector
+        profile={profile}
+        onChange={setProfile}
+        onBegin={() => {
+          // Persist the three picks so a refresh mid-build keeps them.
+          try {
+            sessionStorage.setItem(PERSONA_KEY, JSON.stringify(profile));
+          } catch {
+            // storage unavailable — picks are best-effort
+          }
+          setPhase("start");
+        }}
+        onBack={() => {
+          // First page: Back returns to the home landing (the front door).
+          window.location.href = "/";
+        }}
+      />
+    );
+
   if (phase === "start")
     return (
       <StartingPoint
         value={entryPoint}
         onSelect={(v) => setEntryPoint(v)}
         onNext={() => setPhase("seed")}
-        onBack={() => {
-          // First page: Back returns to the home landing (the front door).
-          window.location.href = "/";
-        }}
+        onBack={() => setPhase("persona")}
       />
     );
 
