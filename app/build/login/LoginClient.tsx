@@ -4,38 +4,44 @@ import ScreenShell from "@/components/screen-shell";
 import ScreenIntro from "@/components/screen-intro";
 import PrimaryButton from "@/components/primary-button";
 
+type Mode = "signin" | "signup";
+
+// v3 multi-tenant: email + password login/signup. Build Mode still generates a
+// pack with no account; logging in only unlocks the saved library per user.
 export default function LoginClient({ next }: { next: string }) {
+  const [mode, setMode] = useState<Mode>("signin");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
 
+  const isSignup = mode === "signup";
+
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // Controlled value is the source of truth; FormData is a fallback in case a
-    // password manager fills the field without firing onChange.
-    const pw =
-      password || String(new FormData(e.currentTarget).get("bm-owner-pass") || "");
-    if (!pw) {
-      setErr("Enter your Build Mode owner password.");
+    setErr("");
+    if (!email || !password) {
+      setErr("Enter your email and password.");
       return;
     }
-    setErr("");
+    if (isSignup && password.length < 8) {
+      setErr("Password must be at least 8 characters.");
+      return;
+    }
     setBusy(true);
     try {
-      const r = await fetch("/api/build-auth", {
+      const r = await fetch(isSignup ? "/api/auth/signup" : "/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: pw }),
+        body: JSON.stringify({ email, password }),
       });
       if (r.ok) {
         window.location.href = next;
         return;
       }
-      if (r.status === 401)
-        setErr("Incorrect password. Use your Build Mode owner password (not the database password).");
-      else if (r.status === 503) setErr("Auth is not configured on the server.");
-      else setErr("Could not sign in. Try again.");
+      const j = (await r.json().catch(() => ({}))) as { error?: string };
+      setErr(j.error || "Something went wrong. Try again.");
     } catch {
       setErr("Could not reach the server.");
     } finally {
@@ -47,24 +53,36 @@ export default function LoginClient({ next }: { next: string }) {
     <ScreenShell>
       <ScreenIntro
         eyebrow="Your library"
-        title="Sign in"
-        description="This area — your saved sessions and Enhance — is private to you. Sign in with your Build Mode owner password (the one you set when deploying, not your database password)."
+        title={isSignup ? "Create your account" : "Sign in"}
+        description="Build Mode generates a pack without an account — sign in only to save your library across sessions."
       />
       <form onSubmit={submit}>
+        <label htmlFor="bm-email" className="mb-1 block text-sm font-medium text-black/70">
+          Email
+        </label>
+        <input
+          id="bm-email"
+          type="email"
+          name="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@example.com"
+          autoComplete="email"
+          autoFocus
+          className="mb-3 w-full rounded-2xl border border-black/10 bg-white px-5 py-3 text-base text-black outline-none transition placeholder:text-black/35 focus:border-black/25"
+        />
+        <label htmlFor="bm-password" className="mb-1 block text-sm font-medium text-black/70">
+          Password
+        </label>
         <div className="mb-3 flex items-stretch gap-2">
           <input
-            // Non-standard name + autoComplete off so the browser does not
-            // autofill a saved credential and lock the field with dots.
+            id="bm-password"
             type={show ? "text" : "password"}
-            name="bm-owner-pass"
+            name="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Owner password"
-            autoFocus
-            autoComplete="off"
-            autoCorrect="off"
-            autoCapitalize="off"
-            spellCheck={false}
+            placeholder={isSignup ? "At least 8 characters" : "Your password"}
+            autoComplete={isSignup ? "new-password" : "current-password"}
             className="w-full rounded-2xl border border-black/10 bg-white px-5 py-3 text-base text-black outline-none transition placeholder:text-black/35 focus:border-black/25"
           />
           <button
@@ -78,10 +96,19 @@ export default function LoginClient({ next }: { next: string }) {
         </div>
         {err && <p className="mb-3 text-sm text-red-600">{err}</p>}
         <div className="flex items-center justify-between gap-4">
-          <a href="/build" className="text-sm underline text-black/55 hover:text-black">
-            ← New build
-          </a>
-          <PrimaryButton disabled={busy}>{busy ? "Signing in…" : "Sign in"}</PrimaryButton>
+          <button
+            type="button"
+            onClick={() => {
+              setMode(isSignup ? "signin" : "signup");
+              setErr("");
+            }}
+            className="text-sm text-black/55 underline transition hover:text-black"
+          >
+            {isSignup ? "Have an account? Sign in" : "New here? Create an account"}
+          </button>
+          <PrimaryButton disabled={busy}>
+            {busy ? "…" : isSignup ? "Create account" : "Sign in"}
+          </PrimaryButton>
         </div>
       </form>
     </ScreenShell>
