@@ -283,15 +283,15 @@ export default function BuildClient() {
           description="You do not need to sound polished. A real answer is enough."
         />
         {fromBlueprint && (
-          <p className="mb-4 text-sm text-black/55 bg-black/[0.03] rounded-xl px-4 py-2">
+          <p className="mb-4 text-sm text-foreground/55 bg-foreground/[0.03] rounded-xl px-4 py-2">
             Starting from your VisionAir blueprint.
           </p>
         )}
-        <p className="mb-2 text-xs uppercase tracking-wide text-black/40">
+        <p className="mb-2 text-xs uppercase tracking-wide text-foreground/40">
           Question {idx + 1}
         </p>
-        <div className="mb-5 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-          <p className="text-base leading-7 text-black/85">{questions[idx].text}</p>
+        <div className="mb-5 rounded-2xl border border-border/10 bg-foreground/[0.02] p-5">
+          <p className="text-base leading-7 text-foreground/85">{questions[idx].text}</p>
         </div>
         <div className="mb-4">
           <textarea
@@ -300,11 +300,11 @@ export default function BuildClient() {
             maxLength={LIMITS.response}
             placeholder="Write freely. You do not need to sound polished — just be real."
             rows={10}
-            className="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 text-base leading-7 text-black outline-none transition placeholder:text-black/35 focus:border-black/25"
+            className="w-full rounded-2xl border border-border/10 bg-card px-5 py-4 text-base leading-7 text-foreground outline-none transition placeholder:text-foreground/35 focus:border-border/25"
           />
           <p
             className={`mt-2 text-right text-xs ${
-              draft.length >= LIMITS.response ? "font-medium text-red-600" : "text-black/40"
+              draft.length >= LIMITS.response ? "font-medium text-red-600" : "text-foreground/40"
             }`}
           >
             {draft.length >= LIMITS.response
@@ -324,7 +324,7 @@ export default function BuildClient() {
   if (phase === "building")
     return (
       <ScreenShell>
-        <p className="text-base text-black/70">Engineering your context pack…</p>
+        <p className="text-base text-foreground/70">Engineering your context pack…</p>
       </ScreenShell>
     );
 
@@ -332,9 +332,9 @@ export default function BuildClient() {
     return (
       <ScreenShell>
         {saved ? (
-          <p className="mb-4 text-sm text-black/60 bg-black/[0.03] rounded-xl px-4 py-2">
+          <p className="mb-4 text-sm text-foreground/60 bg-foreground/[0.03] rounded-xl px-4 py-2">
             Saved as <strong>V{saved.versionNo}</strong> to your library.{" "}
-            <a href="/build/library" className="underline hover:text-black">
+            <a href="/build/library" className="underline hover:text-foreground">
               View your library →
             </a>
           </p>
@@ -349,18 +349,18 @@ export default function BuildClient() {
         )}
         <pre className="whitespace-pre-wrap text-sm leading-relaxed mb-5">{blueprint}</pre>
         <a
-          className="inline-block rounded bg-black px-4 py-2 text-white"
+          className="inline-block rounded bg-foreground px-4 py-2 text-background"
           href={url}
           download="build-mode-pack.zip"
         >
           Download your build pack →
         </a>
         <p className="mt-3 mb-6 text-sm opacity-70">Unzip into a fresh repo and open it in Claude Code — start with LAUNCH.md.</p>
-        <div className="flex items-center justify-between gap-4 border-t border-black/10 pt-5">
+        <div className="flex items-center justify-between gap-4 border-t border-border/10 pt-5">
           <SecondaryButton onClick={startOver}>Start a new build</SecondaryButton>
           <a
             href="/build/library"
-            className="text-sm underline text-black/60 hover:text-black"
+            className="text-sm underline text-foreground/60 hover:text-foreground"
           >
             Go to your library →
           </a>
@@ -376,7 +376,7 @@ export default function BuildClient() {
           title="Let's pick up where you left off."
           description="Your answers are saved. We just need to finish engineering your pack."
         />
-        <p className="mb-5 text-sm text-black/55 bg-black/[0.03] rounded-xl px-4 py-2">
+        <p className="mb-5 text-sm text-foreground/55 bg-foreground/[0.03] rounded-xl px-4 py-2">
           {answersFrom(questions, responses).length} answers saved — nothing to re-do.
         </p>
         <div className="flex items-center justify-between gap-4">
@@ -389,7 +389,7 @@ export default function BuildClient() {
   return (
     <ScreenShell>
       <p className="text-red-600 mb-2">Something went wrong: {err}</p>
-      <p className="mb-5 text-sm text-black/60">
+      <p className="mb-5 text-sm text-foreground/60">
         This is usually a temporary hiccup. Your answers are saved
         {answersFrom(questions, responses).length
           ? ` (${answersFrom(questions, responses).length} so far)`
@@ -398,7 +398,7 @@ export default function BuildClient() {
       </p>
       <div className="flex items-center justify-between gap-4">
         <button
-          className="text-sm underline text-black/50 hover:text-black"
+          className="text-sm underline text-foreground/50 hover:text-foreground"
           onClick={startOver}
         >
           Start over
