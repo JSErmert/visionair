@@ -27,6 +27,10 @@
 
 html {
   font-size: 16px;
+  /* Base canvas color lives on <html> ONLY. The fixed .aurora-field sits at
+     z-index:-10; an opaque <body> background would paint over it and hide the
+     orbs. Keeping <body> transparent lets the deep-sea glow show through. */
+  background: rgb(var(--background-rgb));
 }
 
 html,
@@ -34,7 +38,6 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100%;
-  background: rgb(var(--background-rgb));
   color: rgb(var(--foreground-rgb));
   font-family: Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -89,20 +92,20 @@ a {
 .aurora-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(70px);
-  opacity: 0.55;
+  filter: blur(72px);
+  opacity: 0.72;
   mix-blend-mode: screen; /* dark default: glow */
 }
 :root[data-theme='light'] .aurora-orb {
   mix-blend-mode: multiply; /* light: soft tinted wash on cream */
-  opacity: 0.28;
-  filter: blur(80px);
+  opacity: 0.3;
+  filter: blur(90px);
 }
-.aurora-orb-1 { width: 46vw; height: 44vw; left: 6%;  top: 2%;     background: radial-gradient(circle, var(--aurora-1), transparent 70%); }
-.aurora-orb-2 { width: 40vw; height: 40vw; right: 4%; top: 10%;    background: radial-gradient(circle, var(--aurora-2), transparent 70%); }
-.aurora-orb-3 { width: 52vw; height: 48vw; left: 18%; top: 38%;    background: radial-gradient(circle, var(--aurora-1), transparent 70%); }
-.aurora-orb-4 { width: 38vw; height: 38vw; right: 12%; bottom: 6%; background: radial-gradient(circle, var(--aurora-2), transparent 70%); }
-.aurora-orb-5 { width: 34vw; height: 34vw; left: 40%; bottom: 14%; background: radial-gradient(circle, var(--aurora-1), transparent 70%); }
+.aurora-orb-1 { width: 68vw; height: 60vw; left: -10%; top: -12%;   background: radial-gradient(circle, var(--aurora-1), transparent 68%); }
+.aurora-orb-2 { width: 60vw; height: 58vw; right: -12%; top: -6%;   background: radial-gradient(circle, var(--aurora-2), transparent 68%); }
+.aurora-orb-3 { width: 72vw; height: 64vw; left: 12%;  top: 28%;    background: radial-gradient(circle, var(--aurora-1), transparent 70%); }
+.aurora-orb-4 { width: 58vw; height: 56vw; right: -8%; bottom: -14%; background: radial-gradient(circle, var(--aurora-2), transparent 68%); }
+.aurora-orb-5 { width: 52vw; height: 50vw; left: 30%;  bottom: -8%; background: radial-gradient(circle, var(--aurora-1), transparent 70%); }
 
 @media (prefers-reduced-motion: no-preference) {
   .aurora-orb-1 { animation: aurora-drift-1 42s ease-in-out infinite; }
