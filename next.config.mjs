@@ -45,6 +45,11 @@ const securityHeaders = [
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false, // strip X-Powered-By disclosure
+  // DEV ONLY: Next 16 blocks /_next/* dev resources (JS bundles, HMR) for
+  // cross-origin hosts by default. Without this, previewing via the ngrok
+  // tunnel loads the HTML but NOT the client JS -> nothing hydrates -> every
+  // onClick button is dead while <a> links still work. No effect in production.
+  allowedDevOrigins: ['unwired-pasquale-conciliatory.ngrok-free.dev', '192.168.56.1'],
   async headers() {
     return [
       {
