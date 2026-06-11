@@ -374,12 +374,12 @@ export default function Reflection({
         description="From what you shared, a few signals already stand out."
       />
 
-      <div className="mb-6 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
+      <div className="mb-6 rounded-2xl border border-border/10 bg-foreground/[0.02] p-5">
         <ul className="space-y-3">
           {reflection.map((item, index) => (
             <li
               key={index}
-              className="text-base leading-7 text-black/85"
+              className="text-base leading-7 text-foreground/85"
             >
               • {item}
             </li>
@@ -390,18 +390,18 @@ export default function Reflection({
       {/* v1.2.0 — LLM-dynamic follow-up. Shows when /api/question returns a
           niche-specific question (Sonnet 4.6). Hidden silently on fallback. */}
       {dynamicLoading && (
-        <div className="mb-6 rounded-2xl border border-black/5 bg-white p-5">
-          <p className="text-sm text-black/40">Listening to what you shared…</p>
+        <div className="mb-6 rounded-2xl border border-border/5 bg-card p-5">
+          <p className="text-sm text-foreground/40">Listening to what you shared…</p>
         </div>
       )}
       {!dynamicLoading && dynamicQuestion && (
-        <div className="mb-6 rounded-2xl border border-black/15 bg-white p-5">
-          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-black/45">
+        <div className="mb-6 rounded-2xl border border-border/15 bg-card p-5">
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-foreground/45">
             A more specific question for you
           </p>
-          <p className="text-base leading-7 text-black">{dynamicQuestion}</p>
+          <p className="text-base leading-7 text-foreground">{dynamicQuestion}</p>
           {dynamicRationale && (
-            <p className="mt-3 text-xs italic text-black/50">
+            <p className="mt-3 text-xs italic text-foreground/50">
               {dynamicRationale}
             </p>
           )}
@@ -409,7 +409,7 @@ export default function Reflection({
       )}
 
       <div className="mb-6">
-        <p className="text-base font-medium text-black">Does this feel accurate?</p>
+        <p className="text-base font-medium text-foreground">Does this feel accurate?</p>
       </div>
 
       <div className="mb-6 flex flex-wrap gap-3">
@@ -425,7 +425,7 @@ export default function Reflection({
         <button
           type="button"
           onClick={() => setMode('refine')}
-          className="rounded-2xl border border-black/10 px-4 py-2 text-sm text-black/70 transition hover:border-black/20 hover:text-black"
+          className="rounded-2xl border border-border/10 px-4 py-2 text-sm text-foreground/70 transition hover:border-border/20 hover:text-foreground"
         >
           Partly — refine it
         </button>
@@ -433,7 +433,7 @@ export default function Reflection({
         <button
           type="button"
           onClick={() => setMode('recalibrate')}
-          className="rounded-2xl border border-black/10 px-4 py-2 text-sm text-black/70 transition hover:border-black/20 hover:text-black"
+          className="rounded-2xl border border-border/10 px-4 py-2 text-sm text-foreground/70 transition hover:border-border/20 hover:text-foreground"
         >
           Not quite — let me clarify
         </button>
@@ -442,10 +442,10 @@ export default function Reflection({
       {(mode === 'refine' || mode === 'recalibrate') && (
         <div className="mb-8">
           <div className="mb-3">
-            <p className="text-sm text-black/60">
+            <p className="text-sm text-foreground/60">
               {mode === 'refine'
                 ? 'What feels right here, and what needs adjustment?'
-                : 'Tell me what I’m missing, and I’ll recalibrate.'}
+                : "Tell me what I'm missing, and I'll recalibrate."}
             </p>
           </div>
 
@@ -458,7 +458,7 @@ export default function Reflection({
                 ? 'Add what feels true, missing, or slightly off.'
                 : 'Describe what I missed so the direction can become clearer.'
             }
-            className="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 text-base leading-7 text-black outline-none transition placeholder:text-black/35 focus:border-black/25"
+            className="w-full rounded-2xl border border-border/10 bg-card px-5 py-4 text-base leading-7 text-foreground outline-none transition placeholder:text-foreground/35 focus:border-border/25"
           />
         </div>
       )}

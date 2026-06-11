@@ -57,7 +57,7 @@ export default function LoginClient({ next }: { next: string }) {
         description="Build Mode generates a pack without an account — sign in only to save your library across sessions."
       />
       <form onSubmit={submit}>
-        <label htmlFor="bm-email" className="mb-1 block text-sm font-medium text-black/70">
+        <label htmlFor="bm-email" className="mb-1 block text-sm font-medium text-foreground/70">
           Email
         </label>
         <input
@@ -69,9 +69,9 @@ export default function LoginClient({ next }: { next: string }) {
           placeholder="you@example.com"
           autoComplete="email"
           autoFocus
-          className="mb-3 w-full rounded-2xl border border-black/10 bg-white px-5 py-3 text-base text-black outline-none transition placeholder:text-black/35 focus:border-black/25"
+          className="mb-3 w-full rounded-2xl border border-border/10 bg-card px-5 py-3 text-base text-foreground outline-none transition placeholder:text-foreground/35 focus:border-border/25"
         />
-        <label htmlFor="bm-password" className="mb-1 block text-sm font-medium text-black/70">
+        <label htmlFor="bm-password" className="mb-1 block text-sm font-medium text-foreground/70">
           Password
         </label>
         <div className="mb-3 flex items-stretch gap-2">
@@ -83,12 +83,12 @@ export default function LoginClient({ next }: { next: string }) {
             onChange={(e) => setPassword(e.target.value)}
             placeholder={isSignup ? "At least 8 characters" : "Your password"}
             autoComplete={isSignup ? "new-password" : "current-password"}
-            className="w-full rounded-2xl border border-black/10 bg-white px-5 py-3 text-base text-black outline-none transition placeholder:text-black/35 focus:border-black/25"
+            className="w-full rounded-2xl border border-border/10 bg-card px-5 py-3 text-base text-foreground outline-none transition placeholder:text-foreground/35 focus:border-border/25"
           />
           <button
             type="button"
             onClick={() => setShow((s) => !s)}
-            className="shrink-0 rounded-2xl border border-black/10 bg-white px-4 text-sm text-black/55 transition hover:bg-black/[0.04]"
+            className="shrink-0 rounded-2xl border border-border/10 bg-card px-4 text-sm text-foreground/55 transition hover:bg-foreground/[0.04]"
             aria-label={show ? "Hide password" : "Show password"}
           >
             {show ? "Hide" : "Show"}
@@ -102,7 +102,7 @@ export default function LoginClient({ next }: { next: string }) {
               setMode(isSignup ? "signin" : "signup");
               setErr("");
             }}
-            className="text-sm text-black/55 underline transition hover:text-black"
+            className="text-sm text-foreground/55 underline transition hover:text-foreground"
           >
             {isSignup ? "Have an account? Sign in" : "New here? Create an account"}
           </button>

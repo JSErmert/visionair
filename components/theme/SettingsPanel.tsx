@@ -27,12 +27,22 @@ export default function SettingsPanel() {
   const [open, setOpen] = useState(false);
   const [picking, setPicking] = useState<null | 'primary' | 'secondary'>(null);
   const ref = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
     const onClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
     };
     document.addEventListener('keydown', onKey);
     document.addEventListener('mousedown', onClick);
@@ -42,18 +52,33 @@ export default function SettingsPanel() {
     };
   }, [open]);
 
+  useEffect(() => {
+    if (open) {
+      panelRef.current?.focus();
+    }
+  }, [open]);
+
   return (
     <div ref={ref} className="fixed right-5 top-5 z-50">
       <button
+        ref={triggerRef}
         type="button"
         aria-label="App settings"
+        aria-expanded={open}
+        aria-haspopup="dialog"
         onClick={() => setOpen((v) => !v)}
         className="rounded-full border border-border/15 bg-card/60 px-3 py-1.5 text-xs text-foreground/70 backdrop-blur transition hover:text-foreground"
       >
         Settings
       </button>
       {open && (
-        <div className="mt-2 w-[250px] rounded-2xl border border-border/15 bg-card/80 p-4 shadow-lg backdrop-blur">
+        <div
+          ref={panelRef}
+          role="dialog"
+          aria-label="App settings"
+          tabIndex={-1}
+          className="mt-2 w-[250px] rounded-2xl border border-border/15 bg-card/80 p-4 shadow-lg backdrop-blur"
+        >
           <div className="mb-3 text-[11px] uppercase tracking-wider text-foreground/45">App settings</div>
           <Switch label="Theme" on={settings.theme === 'light'} onToggle={() => setTheme(settings.theme === 'dark' ? 'light' : 'dark')} />
           <Switch label="Aurora" on={settings.aurora} onToggle={toggleAurora} />

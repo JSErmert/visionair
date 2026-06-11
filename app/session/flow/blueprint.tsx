@@ -53,24 +53,24 @@ function SectionCard({
   const hasContent = isArray ? content.length > 0 : content.trim().length > 0
 
   return (
-    <div className="rounded-2xl border border-black/10 bg-white p-5">
-      <p className="mb-2 text-sm font-medium tracking-wide text-black/55">
+    <div className="rounded-2xl border border-border/10 bg-card p-5">
+      <p className="mb-2 text-sm font-medium tracking-wide text-foreground/55">
         {title}
       </p>
       {hasContent ? (
         isArray ? (
           <ul className="space-y-2">
             {content.map((item, i) => (
-              <li key={i} className="text-base leading-7 text-black/80">
+              <li key={i} className="text-base leading-7 text-foreground/80">
                 • {item}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-base leading-7 text-black/80">{content}</p>
+          <p className="text-base leading-7 text-foreground/80">{content}</p>
         )
       ) : (
-        <p className="text-base leading-7 text-black/80">Still taking shape.</p>
+        <p className="text-base leading-7 text-foreground/80">Still taking shape.</p>
       )}
     </div>
   )
@@ -99,53 +99,53 @@ export default function Blueprint({
       {/* v1.2.0 — Opus 4.7 distilled synthesis. Renders above the deterministic
           blueprint when available; hides silently on fallback. */}
       {synthesisLoading && (
-        <div className="mb-6 rounded-2xl border border-black/5 bg-white p-5">
-          <p className="text-sm text-black/40">Distilling your direction…</p>
+        <div className="mb-6 rounded-2xl border border-border/5 bg-card p-5">
+          <p className="text-sm text-foreground/40">Distilling your direction…</p>
         </div>
       )}
       {!synthesisLoading && synthesis && (
-        <div className="mb-6 rounded-2xl border border-black/15 bg-white p-6">
-          <p className="mb-4 text-xs font-medium uppercase tracking-wide text-black/45">
+        <div className="mb-6 rounded-2xl border border-border/15 bg-card p-6">
+          <p className="mb-4 text-xs font-medium uppercase tracking-wide text-foreground/45">
             Your direction, distilled
           </p>
           <div className="space-y-4">
             <div>
-              <p className="mb-1 text-sm font-medium text-black/55">
+              <p className="mb-1 text-sm font-medium text-foreground/55">
                 Core direction
               </p>
-              <p className="text-base leading-7 text-black/85">
+              <p className="text-base leading-7 text-foreground/85">
                 {synthesis.coreDirection}
               </p>
             </div>
             <div>
-              <p className="mb-1 text-sm font-medium text-black/55">
+              <p className="mb-1 text-sm font-medium text-foreground/55">
                 Who it serves
               </p>
-              <p className="text-base leading-7 text-black/85">
+              <p className="text-base leading-7 text-foreground/85">
                 {synthesis.whoItServes}
               </p>
             </div>
             <div>
-              <p className="mb-1 text-sm font-medium text-black/55">
+              <p className="mb-1 text-sm font-medium text-foreground/55">
                 What it offers
               </p>
-              <p className="text-base leading-7 text-black/85">
+              <p className="text-base leading-7 text-foreground/85">
                 {synthesis.whatItOffers}
               </p>
             </div>
             <div>
-              <p className="mb-1 text-sm font-medium text-black/55">
+              <p className="mb-1 text-sm font-medium text-foreground/55">
                 First shippable slice
               </p>
-              <p className="text-base leading-7 text-black/85">
+              <p className="text-base leading-7 text-foreground/85">
                 {synthesis.firstShippableSlice}
               </p>
             </div>
             <div>
-              <p className="mb-1 text-sm font-medium text-black/55">
+              <p className="mb-1 text-sm font-medium text-foreground/55">
                 Proof it works
               </p>
-              <p className="text-base leading-7 text-black/85">
+              <p className="text-base leading-7 text-foreground/85">
                 {synthesis.proofItWorks}
               </p>
             </div>
@@ -180,60 +180,60 @@ export default function Blueprint({
         />
       </div>
 
-      <div className="mt-4 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-        <p className="mb-3 text-sm font-medium tracking-wide text-black/55">
+      <div className="mt-4 rounded-2xl border border-border/10 bg-foreground/[0.02] p-5">
+        <p className="mb-3 text-sm font-medium tracking-wide text-foreground/55">
           7. Guided Path Forward
         </p>
 
         {hasPathForward ? (
           <div className="grid gap-4 md:grid-cols-3">
             <div>
-              <p className="mb-2 text-sm font-medium text-black/70">
+              <p className="mb-2 text-sm font-medium text-foreground/70">
                 Immediate
               </p>
-              <p className="text-sm leading-6 text-black/75">
+              <p className="text-sm leading-6 text-foreground/75">
                 {data.pathForward.immediate.trim() || 'Still taking shape.'}
               </p>
             </div>
 
             <div>
-              <p className="mb-2 text-sm font-medium text-black/70">
+              <p className="mb-2 text-sm font-medium text-foreground/70">
                 Near-term
               </p>
-              <p className="text-sm leading-6 text-black/75">
+              <p className="text-sm leading-6 text-foreground/75">
                 {data.pathForward.nearTerm.trim() || 'Still taking shape.'}
               </p>
             </div>
 
             <div>
-              <p className="mb-2 text-sm font-medium text-black/70">
+              <p className="mb-2 text-sm font-medium text-foreground/70">
                 Later
               </p>
-              <p className="text-sm leading-6 text-black/75">
+              <p className="text-sm leading-6 text-foreground/75">
                 {data.pathForward.later.trim() || 'Still taking shape.'}
               </p>
             </div>
           </div>
         ) : (
-          <p className="text-sm leading-6 text-black/45">
+          <p className="text-sm leading-6 text-foreground/45">
             Your next path forward will appear here once it has been defined.
           </p>
         )}
       </div>
 
       {data.reflection.trim() && data.reflection.trim() !== 'yes' && (
-        <div className="mt-4 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-          <p className="mb-2 text-sm font-medium tracking-wide text-black/55">
+        <div className="mt-4 rounded-2xl border border-border/10 bg-foreground/[0.02] p-5">
+          <p className="mb-2 text-sm font-medium tracking-wide text-foreground/55">
             Your refinement
           </p>
-          <p className="text-base leading-7 italic text-black/80">
+          <p className="text-base leading-7 italic text-foreground/80">
             &ldquo;{data.reflection}&rdquo;
           </p>
         </div>
       )}
 
-      <div className="mt-8 flex flex-col items-start justify-between gap-4 border-t border-black/10 pt-6 md:flex-row md:items-center">
-        <p className="max-w-2xl text-sm leading-6 text-black/55">
+      <div className="mt-8 flex flex-col items-start justify-between gap-4 border-t border-border/10 pt-6 md:flex-row md:items-center">
+        <p className="max-w-2xl text-sm leading-6 text-foreground/55">
           This is not the end of the process. It is the first time your path
           has become clearly visible.
         </p>

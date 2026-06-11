@@ -31,11 +31,11 @@ export default function IdealUser({
 
       <div className="grid gap-6 md:grid-cols-2">
         <div>
-          <div className="mb-4 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-            <p className="mb-3 text-sm font-medium text-black/75">
+          <div className="mb-4 rounded-2xl border border-border/10 bg-foreground/[0.02] p-5">
+            <p className="mb-3 text-sm font-medium text-foreground/75">
               Questions to think through
             </p>
-            <ul className="space-y-2 text-sm leading-6 text-black/65">
+            <ul className="space-y-2 text-sm leading-6 text-foreground/65">
               <li>• Who is most affected by this problem?</li>
               <li>• Who feels capable, but blocked?</li>
               <li>• What are they trying to do or become?</li>
@@ -49,26 +49,26 @@ export default function IdealUser({
             onChange={(e) => onChange(e.target.value)}
             rows={10}
             placeholder="Describe the first person this should help in a grounded, human way."
-            className="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 text-base leading-7 text-black outline-none transition placeholder:text-black/35 focus:border-black/25"
+            className="w-full rounded-2xl border border-border/10 bg-card px-5 py-4 text-base leading-7 text-foreground outline-none transition placeholder:text-foreground/35 focus:border-border/25"
           />
         </div>
 
         <div>
-          <div className="h-full rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-            <p className="mb-3 text-sm font-medium text-black/75">
+          <div className="h-full rounded-2xl border border-border/10 bg-foreground/[0.02] p-5">
+            <p className="mb-3 text-sm font-medium text-foreground/75">
               Your first ideal user
             </p>
 
             {canContinue ? (
               <ul className="space-y-2">
                 {bullets.map((bullet, i) => (
-                  <li key={i} className="text-base leading-7 text-black/80">
+                  <li key={i} className="text-base leading-7 text-foreground/80">
                     • {bullet}
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-sm leading-6 text-black/45">
+              <p className="text-sm leading-6 text-foreground/45">
                 A live draft of the person you are building for will begin to
                 take shape here.
               </p>

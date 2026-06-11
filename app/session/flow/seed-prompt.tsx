@@ -45,12 +45,12 @@ export default function SeedPrompt({
     <ScreenShell>
       <ScreenIntro
         eyebrow="Discovering your path"
-        title="Let’s begin with what feels real."
+        title="Let's begin with what feels real."
         description="You do not need to sound polished. A real answer is enough."
       />
 
-      <div className="mb-5 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-        <p className="text-base leading-7 text-black/85">{prompt}</p>
+      <div className="mb-5 rounded-2xl border border-border/10 bg-foreground/[0.02] p-5">
+        <p className="text-base leading-7 text-foreground/85">{prompt}</p>
       </div>
 
       <div className="mb-4">
@@ -59,18 +59,18 @@ export default function SeedPrompt({
           onChange={(e) => onChange(e.target.value)}
           placeholder="Write freely. You do not need to sound polished — just be real."
           rows={10}
-          className="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 text-base leading-7 text-black outline-none transition placeholder:text-black/35 focus:border-black/25"
+          className="w-full rounded-2xl border border-border/10 bg-card px-5 py-4 text-base leading-7 text-foreground outline-none transition placeholder:text-foreground/35 focus:border-border/25"
         />
       </div>
 
       <div className="mb-8 flex items-center justify-between gap-4">
-        <p className="text-sm text-black/45">
+        <p className="text-sm text-foreground/45">
           VisionAir will help clarify what matters most.
         </p>
 
         <button
           type="button"
-          className="rounded-2xl border border-black/10 px-4 py-2 text-sm text-black/55 transition hover:border-black/20 hover:text-black"
+          className="rounded-2xl border border-border/10 px-4 py-2 text-sm text-foreground/55 transition hover:border-border/20 hover:text-foreground"
         >
           Voice input
         </button>
