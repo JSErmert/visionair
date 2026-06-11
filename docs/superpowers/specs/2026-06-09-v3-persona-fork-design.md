@@ -173,6 +173,44 @@ output unchanged; other cells visibly "coming soon."
 muscle-pt/chef-fina-os) → content template → Claude.ai packager → rest of the matrix +
 the "Not sure" discovery sub-flow.
 
-> RESUME POINT: this spec is the complete buildable plan. A fresh context starts at
-> "Slice 1, step 1" on branch `feat/v3-persona` (which includes Pillar A). Nothing in
-> the design is unresolved.
+> RESUME POINT (updated 2026-06-11): **Slice 1 is COMPLETE + tested** on
+> `feat/v3-persona` (Welcome → Selector → Seed → Level-forked interview). 125 tests green
+> incl. Pillar A multi-tenant integration tests + the PersonaSelector component test.
+> NOT yet merged or deployed. Next slices below.
+
+---
+
+## Next slice — Output Preferences (settings layer)  [added 2026-06-11, post-Slice-1]
+
+A **"tune your output" step AFTER the interview, before pack generation**:
+`interview → preferences → building → pack`. Preferences are collected only once enough
+info exists to make them meaningful — do NOT front-load them into the questionnaire
+(a Beginner can't evaluate output settings before they know what they're building).
+
+**Designer switches — kept deliberately simple (operator preference 2026-06-11):**
+- **Light / Dark** — a toggle
+- **Aurora background — on / off** — a toggle
+
+Two clean switches, NOT a preset menu. They feed a "Design preferences" section in the
+emitted pack, so the coding agent builds light-vs-dark + aurora-on/off into the actual
+project. (The operator's own portfolio — light/plain → dark/aurora — is exactly this
+preference captured.)
+
+**Level-gated exposure (the agency dial applied to settings):**
+- **Beginner** → the two switches with smart defaults pre-set; nothing else
+- **Intermediate** → the two switches, clean
+- **Expert** → the switches **+ an "Advanced" expander** (progressive disclosure): model
+  tier, doc verbosity, framework hints
+
+**Data model:**
+```ts
+OutputPreferences {
+  theme: 'light' | 'dark'   // the switch
+  aurora: boolean           // the switch
+  // advanced (expert-only, optional): modelTier, verbosity, frameworkHints
+}
+```
+Set on the preferences step, threaded into synthesis, emitted as a design-context doc in
+the pack. Hangs off the persona fork (Level gates exposure). This is the next deliberate
+slice AFTER Slice 1 merges — not part of that merge. (Composes with the broader v-next
+5-exemplar design-preset layer; the two simple switches are the minimal first form.)
