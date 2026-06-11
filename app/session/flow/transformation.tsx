@@ -45,43 +45,43 @@ export default function Transformation({
       />
 
       <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-2xl border border-black/10 bg-white p-5">
-          <p className="mb-3 text-sm font-medium text-black/75">Before</p>
+        <div className="rounded-2xl border border-border/10 bg-card p-5">
+          <p className="mb-3 text-sm font-medium text-foreground/75">Before</p>
           <textarea
             value={beforeValue}
             onChange={(e) => onBeforeChange(e.target.value)}
             rows={8}
             placeholder="What are they feeling, struggling with, or lacking before your system helps them?"
-            className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-base leading-7 text-black outline-none transition placeholder:text-black/35 focus:border-black/25"
+            className="w-full rounded-2xl border border-border/10 bg-card px-4 py-3 text-base leading-7 text-foreground outline-none transition placeholder:text-foreground/35 focus:border-border/25"
           />
         </div>
 
-        <div className="rounded-2xl border border-black/10 bg-white p-5">
-          <p className="mb-3 text-sm font-medium text-black/75">After</p>
+        <div className="rounded-2xl border border-border/10 bg-card p-5">
+          <p className="mb-3 text-sm font-medium text-foreground/75">After</p>
           <textarea
             value={afterValue}
             onChange={(e) => onAfterChange(e.target.value)}
             rows={8}
             placeholder="What becomes clearer, easier, safer, or more possible after?"
-            className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-base leading-7 text-black outline-none transition placeholder:text-black/35 focus:border-black/25"
+            className="w-full rounded-2xl border border-border/10 bg-card px-4 py-3 text-base leading-7 text-foreground outline-none transition placeholder:text-foreground/35 focus:border-border/25"
           />
         </div>
       </div>
 
-      <div className="mt-6 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-        <p className="mb-3 text-sm font-medium text-black/75">
+      <div className="mt-6 rounded-2xl border border-border/10 bg-foreground/[0.02] p-5">
+        <p className="mb-3 text-sm font-medium text-foreground/75">
           Your transformation promise
         </p>
 
         {showBullets ? (
           <div className="grid gap-5 md:grid-cols-2">
             <div>
-              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-black/55">
+              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-foreground/55">
                 Before
               </p>
               <ul className="space-y-2">
                 {beforeBullets.map((bullet, i) => (
-                  <li key={i} className="text-sm leading-6 text-black/80">
+                  <li key={i} className="text-sm leading-6 text-foreground/80">
                     • {bullet}
                   </li>
                 ))}
@@ -89,12 +89,12 @@ export default function Transformation({
             </div>
 
             <div>
-              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-black/55">
+              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-foreground/55">
                 After
               </p>
               <ul className="space-y-2">
                 {afterBullets.map((bullet, i) => (
-                  <li key={i} className="text-sm leading-6 text-black/80">
+                  <li key={i} className="text-sm leading-6 text-foreground/80">
                     • {bullet}
                   </li>
                 ))}
@@ -102,7 +102,7 @@ export default function Transformation({
             </div>
           </div>
         ) : (
-          <p className="text-sm leading-6 text-black/45">
+          <p className="text-sm leading-6 text-foreground/45">
             Once you start describing either side, the transformation will appear here as a structured before/after.
           </p>
         )}

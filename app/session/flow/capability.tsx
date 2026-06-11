@@ -64,19 +64,19 @@ export default function Capability({
     <ScreenShell>
       <ScreenIntro
         eyebrow="Clarifying your capability"
-        title="Let’s make your capability more visible."
+        title="Let's make your capability more visible."
         description="You do not need a title first. We are looking for the real pattern in how you create value."
       />
 
       <div className="mb-6">
         <div className="mb-3 flex items-center justify-between gap-4">
-          <p className="text-sm text-black/50">{progressLabel}</p>
-          <p className="text-sm text-black/40">Building your capability pattern…</p>
+          <p className="text-sm text-foreground/50">{progressLabel}</p>
+          <p className="text-sm text-foreground/40">Building your capability pattern…</p>
         </div>
 
-        <div className="h-2 w-full rounded-full bg-black/6">
+        <div className="h-2 w-full rounded-full bg-foreground/6">
           <div
-            className="h-2 rounded-full bg-black transition-all"
+            className="h-2 rounded-full bg-foreground transition-all"
             style={{
               width: `${((questionIndex + 1) / questions.length) * 100}%`,
             }}
@@ -84,8 +84,8 @@ export default function Capability({
         </div>
       </div>
 
-      <div className="mb-5 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-        <p className="text-base leading-7 text-black/85">{currentQuestion}</p>
+      <div className="mb-5 rounded-2xl border border-border/10 bg-foreground/[0.02] p-5">
+        <p className="text-base leading-7 text-foreground/85">{currentQuestion}</p>
       </div>
 
       <div className="mb-8">
@@ -94,7 +94,7 @@ export default function Capability({
           onChange={(e) => updateAnswer(e.target.value)}
           rows={8}
           placeholder="Write in a real, grounded way. You do not need to sound impressive."
-          className="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 text-base leading-7 text-black outline-none transition placeholder:text-black/35 focus:border-black/25"
+          className="w-full rounded-2xl border border-border/10 bg-card px-5 py-4 text-base leading-7 text-foreground outline-none transition placeholder:text-foreground/35 focus:border-border/25"
         />
       </div>
 

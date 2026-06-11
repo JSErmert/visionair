@@ -78,8 +78,8 @@ export default function OpportunityForm({
               className={[
                 'w-full rounded-2xl border p-5 text-left transition',
                 isSelected
-                  ? 'border-black bg-black text-white shadow-sm'
-                  : 'border-black/10 bg-white text-black hover:border-black/25 hover:bg-black/[0.02]',
+                  ? 'border-foreground bg-foreground text-background shadow-sm'
+                  : 'border-border/10 bg-card text-foreground hover:border-border/25 hover:bg-foreground/[0.02]',
               ].join(' ')}
             >
               <div className="mb-2 text-base font-medium tracking-tight">
@@ -88,7 +88,7 @@ export default function OpportunityForm({
               <div
                 className={[
                   'text-sm leading-6',
-                  isSelected ? 'text-white/80' : 'text-black/65',
+                  isSelected ? 'text-background/80' : 'text-foreground/65',
                 ].join(' ')}
               >
                 {option.body}
