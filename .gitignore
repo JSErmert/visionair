@@ -94,6 +94,7 @@ next-env.d.ts.bak
 # AI assistant working files (per-developer; not shared)
 .cursor/
 .windsurf/
+.superpowers/
 .aider*
 .claude/projects/
 .claude/settings.local.json
