@@ -2,6 +2,7 @@ import './globals.css'
 import type { Metadata } from 'next'
 import { ReactNode } from 'react'
 import { ThemeProvider } from '@/lib/theme/ThemeProvider'
+import Aurora from '@/components/theme/Aurora'
 
 export const metadata: Metadata = {
   title: 'VisionAir',
@@ -16,7 +17,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" data-theme="dark" data-aurora="on" suppressHydrationWarning>
       <body>
         <script dangerouslySetInnerHTML={{ __html: NO_FLASH }} />
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <Aurora />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   )
