@@ -46,7 +46,7 @@ const PLATFORMS: { value: Platform; title: string }[] = [
 
 function SoonTag() {
   return (
-    <span className="ml-2 rounded-full bg-black/[0.06] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-black/45 align-middle">
+    <span className="ml-2 rounded-full bg-foreground/[0.06] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-foreground/45 align-middle">
       soon
     </span>
   );
@@ -56,14 +56,14 @@ const cardCls = (sel: boolean) =>
   [
     "rounded-xl border p-4 text-left transition",
     sel
-      ? "border-black bg-black text-white shadow-sm"
-      : "border-black/10 bg-white text-black hover:border-black/25 hover:bg-black/[0.02]",
+      ? "border-foreground bg-foreground text-background shadow-sm"
+      : "border-border/10 bg-card text-foreground hover:border-foreground/25 hover:bg-foreground/[0.02]",
   ].join(" ");
 
 // Title above a grouped, bordered selection box (the portfolio's title -> box rhythm).
-const GROUP_TITLE = "mb-2 font-serif text-lg font-medium text-black/85";
-const GROUP_BOX = "mb-7 rounded-2xl border border-black/10 bg-black/[0.02] p-3 sm:p-4";
-const SUBLABEL = "mb-2 text-xs uppercase tracking-wide text-black/40";
+const GROUP_TITLE = "mb-2 font-serif text-lg font-medium text-foreground/85";
+const GROUP_BOX = "mb-7 rounded-2xl border border-border/10 bg-foreground/[0.02] p-3 sm:p-4";
+const SUBLABEL = "mb-2 text-xs uppercase tracking-wide text-foreground/40";
 
 export default function PersonaSelector({ profile, onChange, onBegin, onBack }: Props) {
   // Picking a Purpose re-suggests its default Platform (a suggestion, never a lock).
@@ -89,7 +89,7 @@ export default function PersonaSelector({ profile, onChange, onBegin, onBack }: 
             return (
               <button key={o.value} type="button" onClick={() => onChange({ ...profile, level: o.value })} className={cardCls(sel)}>
                 <div className="mb-1 text-sm font-medium tracking-tight">{o.title}</div>
-                <div className={["text-xs leading-5", sel ? "text-white/75" : "text-black/60"].join(" ")}>{o.body}</div>
+                <div className={["text-xs leading-5", sel ? "text-background/75" : "text-foreground/60"].join(" ")}>{o.body}</div>
               </button>
             );
           })}
@@ -98,7 +98,7 @@ export default function PersonaSelector({ profile, onChange, onBegin, onBack }: 
 
       {/* ── Box 2: what you're making + where it'll run (connected) ───── */}
       <h3 className={GROUP_TITLE}>What are you making, and where it&apos;ll run?</h3>
-      <div className="mb-8 rounded-2xl border border-black/10 bg-black/[0.02] p-3 sm:p-4">
+      <div className="mb-8 rounded-2xl border border-border/10 bg-foreground/[0.02] p-3 sm:p-4">
         <p className={SUBLABEL}>What are you making</p>
         <div className="grid gap-3 sm:grid-cols-2">
           {PURPOSES.map((o) => {
@@ -109,16 +109,16 @@ export default function PersonaSelector({ profile, onChange, onBegin, onBack }: 
                   {o.title}
                   {o.value !== "build" && <SoonTag />}
                 </div>
-                <div className={["text-xs leading-5", sel ? "text-white/75" : "text-black/60"].join(" ")}>{o.body}</div>
+                <div className={["text-xs leading-5", sel ? "text-background/75" : "text-foreground/60"].join(" ")}>{o.body}</div>
               </button>
             );
           })}
         </div>
 
-        <div className="my-4 border-t border-black/[0.08]" />
+        <div className="my-4 border-t border-border/[0.08]" />
 
         <p className={SUBLABEL}>
-          Where it&apos;ll run <span className="normal-case text-black/35">— suggested from your purpose, change anytime</span>
+          Where it&apos;ll run <span className="normal-case text-foreground/35">— suggested from your purpose, change anytime</span>
         </p>
         <div className="grid gap-3 sm:grid-cols-3">
           {PLATFORMS.map((o) => {
@@ -131,8 +131,8 @@ export default function PersonaSelector({ profile, onChange, onBegin, onBack }: 
                 className={[
                   "rounded-xl border px-4 py-3 text-center text-sm font-medium transition",
                   sel
-                    ? "border-black bg-black text-white shadow-sm"
-                    : "border-black/10 bg-white text-black hover:border-black/25 hover:bg-black/[0.02]",
+                    ? "border-foreground bg-foreground text-background shadow-sm"
+                    : "border-border/10 bg-card text-foreground hover:border-foreground/25 hover:bg-foreground/[0.02]",
                 ].join(" ")}
               >
                 {o.title}
@@ -147,8 +147,8 @@ export default function PersonaSelector({ profile, onChange, onBegin, onBack }: 
         <SecondaryButton onClick={onBack}>Back</SecondaryButton>
         <div className="flex flex-col items-end gap-2">
           {!ready && (
-            <p className="text-right text-xs text-black/45">
-              That combination is coming soon — <strong className="font-medium text-black/65">Build × Claude Code</strong> is live today.
+            <p className="text-right text-xs text-foreground/45">
+              That combination is coming soon — <strong className="font-medium text-foreground/65">Build × Claude Code</strong> is live today.
             </p>
           )}
           <PrimaryButton onClick={onBegin} disabled={!ready}>

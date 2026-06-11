@@ -18,8 +18,8 @@ export default function PrimaryButton({
       className={[
         'rounded-2xl px-5 py-3 text-sm font-medium transition',
         disabled
-          ? 'cursor-not-allowed border border-black/10 bg-black/5 text-black/30'
-          : 'border border-black bg-black text-white hover:opacity-90',
+          ? 'cursor-not-allowed border border-border/10 bg-foreground/5 text-foreground/30'
+          : 'border border-foreground bg-foreground text-background hover:opacity-90',
       ].join(' ')}
     >
       {children}
