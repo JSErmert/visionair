@@ -3,7 +3,6 @@ import type { Metadata } from 'next'
 import { ReactNode } from 'react'
 import { ThemeProvider } from '@/lib/theme/ThemeProvider'
 import Aurora from '@/components/theme/Aurora'
-import SettingsPanel from '@/components/theme/SettingsPanel'
 
 export const metadata: Metadata = {
   title: 'VisionAir',
@@ -20,7 +19,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <script dangerouslySetInnerHTML={{ __html: NO_FLASH }} />
         <ThemeProvider>
           <Aurora />
-          <SettingsPanel />
           {children}
         </ThemeProvider>
       </body>

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import ScreenShell from '@/components/screen-shell'
+import SettingsPanel from '@/components/theme/SettingsPanel'
 
 // Home / front door. v2 = Build Mode only (the /session guided flow stays in the
 // repo but is unlinked; the persona delineation that brings it back arrives in
@@ -12,15 +13,22 @@ import ScreenShell from '@/components/screen-shell'
 
 export default function Home() {
   return (
-    <main className="relative px-6 py-16">
-      <div className="absolute right-28 top-5">
-        <Link
-          href="/build/login"
-          className="text-sm text-foreground/45 transition hover:text-foreground/70"
-        >
-          Log in
-        </Link>
-      </div>
+    <main className="relative px-6 pb-16 pt-6">
+      {/* In-flow header: scrolls with the page (not a fixed overlay). The App
+          Settings control lives here on the homepage only — it tunes the
+          VisionAir interface, so it doesn't belong on the build screens. */}
+      <header className="mx-auto mb-12 flex max-w-2xl items-center justify-between">
+        <span className="text-sm font-medium tracking-wide text-foreground/60">VisionAir</span>
+        <div className="flex items-center gap-4">
+          <SettingsPanel />
+          <Link
+            href="/build/login"
+            className="text-sm text-foreground/45 transition hover:text-foreground/70"
+          >
+            Log in
+          </Link>
+        </div>
+      </header>
 
       <ScreenShell className="max-w-2xl p-10 text-center">
         <p className="mb-3 text-sm tracking-wide text-foreground/50">VisionAir · Build Mode</p>

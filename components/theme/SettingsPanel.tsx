@@ -38,17 +38,18 @@ export default function SettingsPanel() {
         triggerRef.current?.focus();
       }
     };
-    const onClick = (e: MouseEvent) => {
+    const onOutside = (e: Event) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false);
         triggerRef.current?.focus();
       }
     };
     document.addEventListener('keydown', onKey);
-    document.addEventListener('mousedown', onClick);
+    // pointerdown covers mouse AND touch uniformly (mousedown alone is unreliable on mobile).
+    document.addEventListener('pointerdown', onOutside);
     return () => {
       document.removeEventListener('keydown', onKey);
-      document.removeEventListener('mousedown', onClick);
+      document.removeEventListener('pointerdown', onOutside);
     };
   }, [open]);
 
@@ -59,7 +60,7 @@ export default function SettingsPanel() {
   }, [open]);
 
   return (
-    <div ref={ref} className="fixed right-5 top-5 z-50">
+    <div ref={ref} className="relative">
       <button
         ref={triggerRef}
         type="button"
@@ -67,7 +68,7 @@ export default function SettingsPanel() {
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => setOpen((v) => !v)}
-        className="rounded-full border border-border/15 bg-card/60 px-3 py-1.5 text-xs text-foreground/70 backdrop-blur transition hover:text-foreground"
+        className="touch-manipulation select-none rounded-full border border-border/15 bg-card/70 px-4 py-2 text-sm text-foreground/80 backdrop-blur transition hover:text-foreground"
       >
         Settings
       </button>
@@ -77,7 +78,7 @@ export default function SettingsPanel() {
           role="dialog"
           aria-label="App settings"
           tabIndex={-1}
-          className="mt-2 w-[250px] rounded-2xl border border-border/15 bg-card/80 p-4 shadow-lg backdrop-blur"
+          className="absolute right-0 z-50 mt-2 w-[min(250px,86vw)] rounded-2xl border border-border/15 bg-card/95 p-4 shadow-lg backdrop-blur"
         >
           <div className="mb-3 text-[11px] uppercase tracking-wider text-foreground/45">App settings</div>
           <Switch label="Theme" on={settings.theme === 'light'} onToggle={() => setTheme(settings.theme === 'dark' ? 'light' : 'dark')} />
