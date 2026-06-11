@@ -3,12 +3,22 @@
 @tailwind utilities;
 
 :root {
-  --background: #faf9f6;
-  --foreground: #111111;
-  --muted: rgba(17, 17, 17, 0.7);
-  --soft-muted: rgba(17, 17, 17, 0.5);
-  --border: rgba(17, 17, 17, 0.1);
-  --card: rgba(255, 255, 255, 0.8);
+  /* light (default values; dark default is applied via <html data-theme="dark">) */
+  --background-rgb: 250 249 246;
+  --foreground-rgb: 17 17 17;
+  --card-rgb: 255 255 255;
+  --border-rgb: 17 17 17;
+  --muted-rgb: 17 17 17;
+  --aurora-1: #4E6EF5;
+  --aurora-2: #9A5AE6;
+}
+
+:root[data-theme='dark'] {
+  --background-rgb: 7 8 12;
+  --foreground-rgb: 240 242 248;
+  --card-rgb: 17 23 38;
+  --border-rgb: 255 255 255;
+  --muted-rgb: 240 242 248;
 }
 
 * {
@@ -24,12 +34,9 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100%;
-  background: var(--background);
-  color: var(--foreground);
-  font-family:
-    Arial,
-    Helvetica,
-    sans-serif;
+  background: rgb(var(--background-rgb));
+  color: rgb(var(--foreground-rgb));
+  font-family: Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -59,7 +66,7 @@ a {
 }
 
 ::selection {
-  background: rgba(17, 17, 17, 0.12);
+  background: rgb(var(--foreground-rgb) / 0.12);
 }
 
 @media (prefers-reduced-motion: reduce) {
