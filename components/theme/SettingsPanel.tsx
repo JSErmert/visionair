@@ -1,6 +1,7 @@
 // components/theme/SettingsPanel.tsx
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { HexColorPicker } from 'react-colorful';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 
 function Switch({ label, on, onToggle }: { label: string; on: boolean; onToggle: () => void }) {
@@ -22,8 +23,9 @@ function Switch({ label, on, onToggle }: { label: string; on: boolean; onToggle:
 }
 
 export default function SettingsPanel() {
-  const { settings, setTheme, toggleAurora } = useTheme();
+  const { settings, setTheme, toggleAurora, setPrimary, setSecondary } = useTheme();
   const [open, setOpen] = useState(false);
+  const [picking, setPicking] = useState<null | 'primary' | 'secondary'>(null);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -64,12 +66,34 @@ export default function SettingsPanel() {
             {!settings.aurora && <div className="mb-2 text-[10px] italic text-foreground/40">Turn Aurora on to customize</div>}
             <div className="flex items-center justify-between py-1.5">
               <span className="text-sm text-foreground/85">Primary</span>
-              <span className="h-6 w-6 rounded-md border border-border/25" style={{ background: settings.primary }} />
+              <button type="button" aria-label="Primary color" onClick={() => setPicking(picking === 'primary' ? null : 'primary')}
+                className="h-6 w-6 rounded-md border border-border/25" style={{ background: settings.primary }} />
             </div>
+            {picking === 'primary' && (
+              <div className="mb-2">
+                <HexColorPicker color={settings.primary} onChange={setPrimary} />
+                <label className="mt-2 block text-[10px] uppercase text-foreground/40">Primary hex
+                  <input aria-label="Primary hex" value={settings.primary}
+                    onChange={(e) => /^#[0-9a-fA-F]{6}$/.test(e.target.value) && setPrimary(e.target.value)}
+                    className="mt-1 w-full rounded-md border border-border/20 bg-background/40 px-2 py-1 text-xs text-foreground" />
+                </label>
+              </div>
+            )}
             <div className="flex items-center justify-between py-1.5">
               <span className="text-sm text-foreground/85">Secondary</span>
-              <span className="h-6 w-6 rounded-md border border-border/25" style={{ background: settings.secondary }} />
+              <button type="button" aria-label="Secondary color" onClick={() => setPicking(picking === 'secondary' ? null : 'secondary')}
+                className="h-6 w-6 rounded-md border border-border/25" style={{ background: settings.secondary }} />
             </div>
+            {picking === 'secondary' && (
+              <div className="mb-2">
+                <HexColorPicker color={settings.secondary} onChange={setSecondary} />
+                <label className="mt-2 block text-[10px] uppercase text-foreground/40">Secondary hex
+                  <input aria-label="Secondary hex" value={settings.secondary}
+                    onChange={(e) => /^#[0-9a-fA-F]{6}$/.test(e.target.value) && setSecondary(e.target.value)}
+                    className="mt-1 w-full rounded-md border border-border/20 bg-background/40 px-2 py-1 text-xs text-foreground" />
+                </label>
+              </div>
+            )}
           </div>
         </div>
       )}

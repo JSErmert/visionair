@@ -32,4 +32,12 @@ describe('SettingsPanel', () => {
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(screen.queryByRole('switch', { name: /theme/i })).toBeNull();
   });
+
+  it('opens a hex-input picker when a Primary swatch is clicked (aurora on)', () => {
+    open();
+    fireEvent.click(screen.getByRole('button', { name: /primary color/i }));
+    const hex = screen.getByLabelText(/primary hex/i) as HTMLInputElement;
+    fireEvent.change(hex, { target: { value: '#112233' } });
+    expect(document.documentElement.style.getPropertyValue('--aurora-1')).toBe('#112233');
+  });
 });
