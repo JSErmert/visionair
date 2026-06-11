@@ -18,10 +18,10 @@ function setup(profile: PersonaProfile = base) {
 const beginBtn = () => screen.getByRole("button", { name: /begin/i }) as HTMLButtonElement;
 
 describe("PersonaSelector", () => {
-  it("renders the three axes (Purpose, Level, Platform)", () => {
+  it("renders the boxed axes (support level + making/where)", () => {
     setup();
-    expect(screen.getByText(/what are you making/i)).toBeTruthy();
-    expect(screen.getByText(/how hands-on are you/i)).toBeTruthy();
+    expect(screen.getByText(/level of support/i)).toBeTruthy(); // support box title
+    expect(screen.getByText(/what are you making, and where/i)).toBeTruthy(); // combined box title
     expect(screen.getByText("Claude.ai")).toBeTruthy(); // a Platform option
   });
 

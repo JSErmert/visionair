@@ -29,8 +29,8 @@ const PURPOSES: { value: Purpose; title: string; body: string }[] = [
   { value: "unsure", title: "I'm not sure yet", body: "Help me figure out what I'm really making." },
 ];
 
-// Axis 1 — Level (how hands-on you are). Tunes the interview, not respect. All three
-// proceed in Slice 1 — this is the fork we're proving.
+// Axis 1 — Level / support. Tunes the interview, not respect. All three proceed in
+// Slice 1 — this is the fork we're proving.
 const LEVELS: { value: Level; title: string; body: string }[] = [
   { value: "beginner", title: "Guide me", body: "I'm new — assume best practices, walk me through it." },
   { value: "intermediate", title: "Structure me", body: "I know my goal; help me organize and fill the gaps." },
@@ -52,6 +52,19 @@ function SoonTag() {
   );
 }
 
+const cardCls = (sel: boolean) =>
+  [
+    "rounded-xl border p-4 text-left transition",
+    sel
+      ? "border-black bg-black text-white shadow-sm"
+      : "border-black/10 bg-white text-black hover:border-black/25 hover:bg-black/[0.02]",
+  ].join(" ");
+
+// Title above a grouped, bordered selection box (the portfolio's title -> box rhythm).
+const GROUP_TITLE = "mb-2 font-serif text-lg font-medium text-black/85";
+const GROUP_BOX = "mb-7 rounded-2xl border border-black/10 bg-black/[0.02] p-3 sm:p-4";
+const SUBLABEL = "mb-2 text-xs uppercase tracking-wide text-black/40";
+
 export default function PersonaSelector({ profile, onChange, onBegin, onBack }: Props) {
   // Picking a Purpose re-suggests its default Platform (a suggestion, never a lock).
   const pickPurpose = (purpose: Purpose) =>
@@ -63,92 +76,74 @@ export default function PersonaSelector({ profile, onChange, onBegin, onBack }: 
     <ScreenShell>
       <ScreenIntro
         eyebrow="Set up your build"
-        title="Three quick choices — then we begin."
-        description="They're independent: what you're making, how hands-on you want to be, and where it'll run. There's no wrong answer; you can change them later."
+        title="A few quick choices."
+        description="There's no wrong answer, and you can change these later — they just shape how we work together."
       />
 
-      {/* Axis 3 — Purpose */}
-      <p className="mb-2 text-xs uppercase tracking-wide text-black/40">What are you making?</p>
-      <div className="grid gap-3 sm:grid-cols-2">
-        {PURPOSES.map((o) => {
-          const sel = profile.purpose === o.value;
-          return (
-            <button
-              key={o.value}
-              type="button"
-              onClick={() => pickPurpose(o.value)}
-              className={[
-                "rounded-2xl border p-4 text-left transition",
-                sel
-                  ? "border-black bg-black text-white shadow-sm"
-                  : "border-black/10 bg-white text-black hover:border-black/25 hover:bg-black/[0.02]",
-              ].join(" ")}
-            >
-              <div className="mb-1 text-sm font-medium tracking-tight">
+      {/* ── Box 1: support level ─────────────────────────────────────── */}
+      <h3 className={GROUP_TITLE}>What level of support do you need?</h3>
+      <div className={GROUP_BOX}>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {LEVELS.map((o) => {
+            const sel = profile.level === o.value;
+            return (
+              <button key={o.value} type="button" onClick={() => onChange({ ...profile, level: o.value })} className={cardCls(sel)}>
+                <div className="mb-1 text-sm font-medium tracking-tight">{o.title}</div>
+                <div className={["text-xs leading-5", sel ? "text-white/75" : "text-black/60"].join(" ")}>{o.body}</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Box 2: what you're making + where it'll run (connected) ───── */}
+      <h3 className={GROUP_TITLE}>What are you making, and where it&apos;ll run?</h3>
+      <div className="mb-8 rounded-2xl border border-black/10 bg-black/[0.02] p-3 sm:p-4">
+        <p className={SUBLABEL}>What are you making</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {PURPOSES.map((o) => {
+            const sel = profile.purpose === o.value;
+            return (
+              <button key={o.value} type="button" onClick={() => pickPurpose(o.value)} className={cardCls(sel)}>
+                <div className="mb-1 text-sm font-medium tracking-tight">
+                  {o.title}
+                  {o.value !== "build" && <SoonTag />}
+                </div>
+                <div className={["text-xs leading-5", sel ? "text-white/75" : "text-black/60"].join(" ")}>{o.body}</div>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="my-4 border-t border-black/[0.08]" />
+
+        <p className={SUBLABEL}>
+          Where it&apos;ll run <span className="normal-case text-black/35">— suggested from your purpose, change anytime</span>
+        </p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {PLATFORMS.map((o) => {
+            const sel = profile.platform === o.value;
+            return (
+              <button
+                key={o.value}
+                type="button"
+                onClick={() => onChange({ ...profile, platform: o.value })}
+                className={[
+                  "rounded-xl border px-4 py-3 text-center text-sm font-medium transition",
+                  sel
+                    ? "border-black bg-black text-white shadow-sm"
+                    : "border-black/10 bg-white text-black hover:border-black/25 hover:bg-black/[0.02]",
+                ].join(" ")}
+              >
                 {o.title}
-                {o.value !== "build" && <SoonTag />}
-              </div>
-              <div className={["text-xs leading-5", sel ? "text-white/75" : "text-black/60"].join(" ")}>
-                {o.body}
-              </div>
-            </button>
-          );
-        })}
+                {o.value !== "claude-code" && <SoonTag />}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Axis 1 — Level */}
-      <p className="mb-2 mt-7 text-xs uppercase tracking-wide text-black/40">How hands-on are you?</p>
-      <div className="grid gap-3 sm:grid-cols-3">
-        {LEVELS.map((o) => {
-          const sel = profile.level === o.value;
-          return (
-            <button
-              key={o.value}
-              type="button"
-              onClick={() => onChange({ ...profile, level: o.value })}
-              className={[
-                "rounded-2xl border p-4 text-left transition",
-                sel
-                  ? "border-black bg-black text-white shadow-sm"
-                  : "border-black/10 bg-white text-black hover:border-black/25 hover:bg-black/[0.02]",
-              ].join(" ")}
-            >
-              <div className="mb-1 text-sm font-medium tracking-tight">{o.title}</div>
-              <div className={["text-xs leading-5", sel ? "text-white/75" : "text-black/60"].join(" ")}>
-                {o.body}
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Axis 2 — Platform (pre-filled from Purpose) */}
-      <p className="mb-2 mt-7 text-xs uppercase tracking-wide text-black/40">
-        Where will it run? <span className="normal-case text-black/35">— suggested from your purpose, change anytime</span>
-      </p>
-      <div className="grid gap-3 sm:grid-cols-3">
-        {PLATFORMS.map((o) => {
-          const sel = profile.platform === o.value;
-          return (
-            <button
-              key={o.value}
-              type="button"
-              onClick={() => onChange({ ...profile, platform: o.value })}
-              className={[
-                "rounded-2xl border px-4 py-3 text-center text-sm font-medium transition",
-                sel
-                  ? "border-black bg-black text-white shadow-sm"
-                  : "border-black/10 bg-white text-black hover:border-black/25 hover:bg-black/[0.02]",
-              ].join(" ")}
-            >
-              {o.title}
-              {o.value !== "claude-code" && <SoonTag />}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="mt-8 flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-4">
         <SecondaryButton onClick={onBack}>Back</SecondaryButton>
         <div className="flex flex-col items-end gap-2">
           {!ready && (

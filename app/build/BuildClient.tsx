@@ -13,14 +13,14 @@ import SecondaryButton from "@/components/secondary-button";
 
 type Answer = { move: string; question: string; response: string };
 type Question = { move: string; text: string };
-type Phase = "welcome" | "persona" | "seed" | "interview" | "building" | "blueprint" | "error" | "resume";
+type Phase = "persona" | "seed" | "interview" | "building" | "blueprint" | "error" | "resume";
 
 // Neutral starting picks; the selector is where the user actually chooses. Slice 1
 // proceeds only on Build x Claude Code, so those are the safe defaults.
 const DEFAULT_PROFILE: PersonaProfile = { level: "intermediate", purpose: "build", platform: "claude-code" };
 
 export default function BuildClient() {
-  const [phase, setPhase] = useState<Phase>("welcome");
+  const [phase, setPhase] = useState<Phase>("persona");
   const [profile, setProfile] = useState<PersonaProfile>(DEFAULT_PROFILE);
   const [seedValue, setSeedValue] = useState("");
   const [idea, setIdea] = useState("");
@@ -249,21 +249,6 @@ export default function BuildClient() {
       setPhase("error");
     });
 
-  if (phase === "welcome")
-    return (
-      <ScreenShell>
-        <ScreenIntro
-          eyebrow="Build Mode"
-          title="Let's build your context pack."
-          description="You do not need a perfect idea to begin. Answer a few questions in your own words, and VisionAir turns them into a ready-to-build pack for your AI coding agent."
-        />
-        <div className="flex items-center justify-between gap-4">
-          <SecondaryButton onClick={() => { window.location.href = "/"; }}>Back</SecondaryButton>
-          <PrimaryButton onClick={() => setPhase("persona")}>Begin</PrimaryButton>
-        </div>
-      </ScreenShell>
-    );
-
   if (phase === "persona")
     return (
       <PersonaSelector
@@ -278,7 +263,10 @@ export default function BuildClient() {
           }
           setPhase("seed");
         }}
-        onBack={() => setPhase("welcome")}
+        onBack={() => {
+          // First screen now: Back returns to the home landing (the front door).
+          window.location.href = "/";
+        }}
       />
     );
 
