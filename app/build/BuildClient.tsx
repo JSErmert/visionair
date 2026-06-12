@@ -2,11 +2,10 @@
 import { useState, useEffect } from "react";
 import { SEED_KEY, PROGRESS_KEY } from "@/lib/build-mode/seed";
 import type { BuildSeed, BuildProgress } from "@/lib/build-mode/seed";
-import { composeIdea } from "@/lib/build-mode/entry";
-import type { EntryPoint } from "@/lib/build-mode/entry";
 import { LIMITS } from "@/lib/build-mode/limits";
-import StartingPoint from "@/app/session/flow/starting-point";
+import { PERSONA_KEY, type PersonaProfile } from "@/lib/build-mode/persona";
 import SeedPrompt from "@/app/session/flow/seed-prompt";
+import PersonaSelector from "@/app/build/selector";
 import ScreenShell from "@/components/screen-shell";
 import ScreenIntro from "@/components/screen-intro";
 import PrimaryButton from "@/components/primary-button";
@@ -14,11 +13,15 @@ import SecondaryButton from "@/components/secondary-button";
 
 type Answer = { move: string; question: string; response: string };
 type Question = { move: string; text: string };
-type Phase = "start" | "seed" | "interview" | "building" | "blueprint" | "error" | "resume";
+type Phase = "persona" | "seed" | "interview" | "building" | "blueprint" | "error" | "resume";
+
+// Neutral starting picks; the selector is where the user actually chooses. Slice 1
+// proceeds only on Build x Claude Code, so those are the safe defaults.
+const DEFAULT_PROFILE: PersonaProfile = { level: "intermediate", purpose: "build", platform: "claude-code" };
 
 export default function BuildClient() {
-  const [phase, setPhase] = useState<Phase>("start");
-  const [entryPoint, setEntryPoint] = useState<EntryPoint | "">("");
+  const [phase, setPhase] = useState<Phase>("persona");
+  const [profile, setProfile] = useState<PersonaProfile>(DEFAULT_PROFILE);
   const [seedValue, setSeedValue] = useState("");
   const [idea, setIdea] = useState("");
   const [fromBlueprint, setFromBlueprint] = useState(false);
@@ -38,6 +41,13 @@ export default function BuildClient() {
   const [err, setErr] = useState("");
 
   useEffect(() => {
+    // Restore the persona picks first so a refresh keeps them on any phase.
+    try {
+      const rawProfile = sessionStorage.getItem(PERSONA_KEY);
+      if (rawProfile) setProfile(JSON.parse(rawProfile) as PersonaProfile);
+    } catch {
+      // ignore malformed profile
+    }
     // A fresh seed handed off from /session always wins over saved progress.
     try {
       const raw = sessionStorage.getItem(SEED_KEY);
@@ -110,7 +120,9 @@ export default function BuildClient() {
     const r = await fetch("/api/build", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action, idea: seedIdea, answers: ans }),
+      // Level forks the interview (Axis 1). Sent on every question so the server
+      // frames each move for this person's agency level.
+      body: JSON.stringify({ action, idea: seedIdea, answers: ans, level: profile.level }),
     });
     if (!r.ok) {
       const j = (await r.json().catch(() => ({}))) as { error?: string; detail?: string };
@@ -228,7 +240,7 @@ export default function BuildClient() {
     setComplete(false);
     setErr("");
     setFromBlueprint(false);
-    setPhase("start");
+    setPhase("persona");
   }
 
   const guard = (fn: () => Promise<void>) =>
@@ -237,14 +249,22 @@ export default function BuildClient() {
       setPhase("error");
     });
 
-  if (phase === "start")
+  if (phase === "persona")
     return (
-      <StartingPoint
-        value={entryPoint}
-        onSelect={(v) => setEntryPoint(v)}
-        onNext={() => setPhase("seed")}
+      <PersonaSelector
+        profile={profile}
+        onChange={setProfile}
+        onBegin={() => {
+          // Persist the three picks so a refresh mid-build keeps them.
+          try {
+            sessionStorage.setItem(PERSONA_KEY, JSON.stringify(profile));
+          } catch {
+            // storage unavailable — picks are best-effort
+          }
+          setPhase("seed");
+        }}
         onBack={() => {
-          // First page: Back returns to the home landing (the front door).
+          // First screen now: Back returns to the home landing (the front door).
           window.location.href = "/";
         }}
       />
@@ -253,11 +273,13 @@ export default function BuildClient() {
   if (phase === "seed")
     return (
       <SeedPrompt
-        entryPoint={entryPoint}
+        entryPoint=""
         value={seedValue}
         onChange={setSeedValue}
         onNext={() => {
-          const composed = composeIdea(entryPoint as EntryPoint, seedValue.trim());
+          // The entry-point slide is absorbed (Slice 1): the seed text IS the idea,
+          // and the selector already captured Purpose. No framing prefix needed.
+          const composed = seedValue.trim();
           setIdea(composed);
           if (questions.length > 0) {
             // Returning forward from Back — keep the existing questions exactly
@@ -270,7 +292,7 @@ export default function BuildClient() {
             guard(() => startInterview(composed));
           }
         }}
-        onBack={() => setPhase("start")}
+        onBack={() => setPhase("persona")}
       />
     );
 

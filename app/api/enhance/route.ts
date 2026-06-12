@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
-import { isOwner, OWNER_ID } from '@/lib/build-mode/server-auth'
+import { getOwnerId } from '@/lib/build-mode/server-auth'
 import { getSql } from '@/lib/build-mode/db/client'
 import { getSessionWithVersions, addVersion, updateSessionSummary } from '@/lib/build-mode/db/sessions'
 import { auditPack, enhanceFinish } from '@/lib/build-mode/enhance'
@@ -27,7 +27,8 @@ const Schema = z
   .strict()
 
 export async function POST(req: NextRequest) {
-  if (!isOwner(req)) return Response.json({ error: 'unauthorized' }, { status: 401 })
+  const ownerId = getOwnerId(req)
+  if (ownerId === null) return Response.json({ error: 'unauthorized' }, { status: 401 })
   if (!process.env.ANTHROPIC_API_KEY) {
     return Response.json({ error: 'server not configured' }, { status: 503 })
   }
@@ -47,7 +48,7 @@ export async function POST(req: NextRequest) {
   const body = parsed.data
 
   try {
-    const session = await getSessionWithVersions(getSql(), OWNER_ID, body.sessionId)
+    const session = await getSessionWithVersions(getSql(), ownerId, body.sessionId)
     if (!session || session.versions.length === 0) {
       return Response.json({ error: 'not found' }, { status: 404 })
     }
@@ -70,7 +71,7 @@ export async function POST(req: NextRequest) {
     const out = await addVersion(getSql(), body.sessionId, qa, blueprint, files)
     // Regenerate the library overview to cover all versions through this one.
     try {
-      const refreshed = await getSessionWithVersions(getSql(), OWNER_ID, body.sessionId)
+      const refreshed = await getSessionWithVersions(getSql(), ownerId, body.sessionId)
       if (refreshed) {
         const summary = await summarizeSession(
           refreshed.idea,

@@ -4,6 +4,12 @@ CREATE TABLE IF NOT EXISTS owners (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- v3 multi-tenant: per-user accounts. email/password_hash are nullable so the
+-- seeded operator (id=1) stays valid; unique on lower(email) only when present.
+ALTER TABLE owners ADD COLUMN IF NOT EXISTS email TEXT;
+ALTER TABLE owners ADD COLUMN IF NOT EXISTS password_hash TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_owners_email ON owners (LOWER(email)) WHERE email IS NOT NULL;
+
 CREATE TABLE IF NOT EXISTS sessions (
   id BIGSERIAL PRIMARY KEY,
   owner_id BIGINT NOT NULL REFERENCES owners(id) ON DELETE CASCADE,

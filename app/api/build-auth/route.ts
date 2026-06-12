@@ -6,6 +6,7 @@ import {
   SESSION_COOKIE,
   SESSION_MAX_AGE_MS,
 } from '@/lib/build-mode/auth'
+import { OWNER_ID } from '@/lib/build-mode/server-auth'
 
 export const runtime = 'nodejs'
 
@@ -29,7 +30,8 @@ export async function POST(req: NextRequest) {
   if (!verifyPassword(password, hash)) {
     return Response.json({ error: 'invalid credentials' }, { status: 401 })
   }
-  const token = signSession(secret, Date.now())
+  // Operator (env-based) login maps to the seeded operator account, id=1.
+  const token = signSession(secret, OWNER_ID, Date.now())
   const c = await cookies()
   c.set(SESSION_COOKIE, token, {
     httpOnly: true,
