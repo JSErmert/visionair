@@ -58,8 +58,8 @@ export default function SeedPrompt({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Write freely. You do not need to sound polished — just be real."
-          rows={10}
-          className="w-full rounded-2xl border border-border/10 bg-card px-5 py-4 text-base leading-7 text-foreground outline-none transition placeholder:text-foreground/35 focus:border-border/25"
+          rows={5}
+          className="h-32 w-full rounded-2xl border border-border/10 bg-card px-5 py-4 text-base leading-7 text-foreground outline-none transition placeholder:text-foreground/35 focus:border-border/25 sm:h-44"
         />
       </div>
 

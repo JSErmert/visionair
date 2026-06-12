@@ -94,6 +94,15 @@ a {
   }
 }
 
+/* Touch devices (phones/tablets): zoom the card OUT so it fits the viewport and
+   the aurora shows around it instead of overflowing. pointer:coarse is the mobile
+   counterpart to the desktop rule above and is invariant under zoom (no flip-flop). */
+@media (pointer: coarse) {
+  .screen-card {
+    zoom: 0.8;
+  }
+}
+
 .aurora-field {
   position: fixed;
   inset: 0;
