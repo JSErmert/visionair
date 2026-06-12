@@ -54,7 +54,7 @@ function SoonTag() {
 
 const cardCls = (sel: boolean) =>
   [
-    "rounded-xl border p-4 text-left transition",
+    "rounded-xl border p-3 text-left transition sm:p-4",
     sel
       ? "border-foreground bg-foreground text-background shadow-sm"
       : "border-border/10 bg-card text-foreground hover:border-foreground/25 hover:bg-foreground/[0.02]",
@@ -62,7 +62,7 @@ const cardCls = (sel: boolean) =>
 
 // Title above a grouped, bordered selection box (the portfolio's title -> box rhythm).
 const GROUP_TITLE = "mb-2 font-serif text-lg font-medium text-foreground/85";
-const GROUP_BOX = "mb-7 rounded-2xl border border-border/10 bg-foreground/[0.02] p-3 sm:p-4";
+const GROUP_BOX = "mb-4 rounded-2xl border border-border/10 bg-foreground/[0.02] p-3 sm:mb-7 sm:p-4";
 const SUBLABEL = "mb-2 text-xs uppercase tracking-wide text-foreground/40";
 
 export default function PersonaSelector({ profile, onChange, onBegin, onBack }: Props) {
@@ -83,7 +83,7 @@ export default function PersonaSelector({ profile, onChange, onBegin, onBack }: 
       {/* ── Box 1: support level ─────────────────────────────────────── */}
       <h3 className={GROUP_TITLE}>What level of support do you need?</h3>
       <div className={GROUP_BOX}>
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-2.5 sm:grid-cols-3">
           {LEVELS.map((o) => {
             const sel = profile.level === o.value;
             return (
@@ -98,9 +98,9 @@ export default function PersonaSelector({ profile, onChange, onBegin, onBack }: 
 
       {/* ── Box 2: what you're making + where it'll run (connected) ───── */}
       <h3 className={GROUP_TITLE}>What are you making, and where it&apos;ll run?</h3>
-      <div className="mb-8 rounded-2xl border border-border/10 bg-foreground/[0.02] p-3 sm:p-4">
+      <div className="mb-5 rounded-2xl border border-border/10 bg-foreground/[0.02] p-3 sm:mb-8 sm:p-4">
         <p className={SUBLABEL}>What are you making</p>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3">
           {PURPOSES.map((o) => {
             const sel = profile.purpose === o.value;
             return (
@@ -120,7 +120,7 @@ export default function PersonaSelector({ profile, onChange, onBegin, onBack }: 
         <p className={SUBLABEL}>
           Where it&apos;ll run <span className="normal-case text-foreground/35">— suggested from your purpose, change anytime</span>
         </p>
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
           {PLATFORMS.map((o) => {
             const sel = profile.platform === o.value;
             return (
