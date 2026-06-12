@@ -596,7 +596,7 @@ export default function SessionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#faf9f6] px-6 py-10">
+    <div className="min-h-screen px-6 py-10">
       <div className="mx-auto w-full max-w-6xl">{renderStep()}</div>
     </div>
   )
