@@ -34,7 +34,7 @@ const cardCls = (sel: boolean) =>
   ].join(" ");
 
 const GROUP_TITLE = "mb-2 font-serif text-lg font-medium text-foreground/85";
-const GROUP_BOX = "mb-4 rounded-2xl border border-border/10 bg-foreground/[0.02] p-3 sm:mb-7 sm:p-4";
+const GROUP_BOX = "mb-5 rounded-2xl border border-border/10 bg-foreground/[0.02] p-3 sm:p-4";
 const SUBLABEL = "mb-2 text-xs uppercase tracking-wide text-foreground/40";
 const FIXED_CARD = "rounded-xl border border-border/15 bg-card p-3 sm:p-4";
 
@@ -52,7 +52,7 @@ export default function PersonaSelector({ profile, onChange, onBegin, onBack }: 
 
   return (
     <ScreenShell>
-      <ScreenIntro eyebrow="Set up your build" title="A few quick choices." />
+      <ScreenIntro eyebrow="Set up your build" title="Build Mode for Claude Code" />
 
       {/* The one real choice: support level (user expertise) — forks the interview. */}
       <h3 className={GROUP_TITLE}>What level of support do you need?</h3>
@@ -71,8 +71,7 @@ export default function PersonaSelector({ profile, onChange, onBegin, onBack }: 
       </div>
 
       {/* The single live cell, shown side by side. */}
-      <h3 className={GROUP_TITLE}>Build Mode for Claude Code</h3>
-      <div className="mb-6 grid grid-cols-2 gap-3 rounded-2xl border border-border/10 bg-foreground/[0.02] p-3 sm:p-4">
+      <div className="mb-5 grid grid-cols-2 gap-3 rounded-2xl border border-border/10 bg-foreground/[0.02] p-3 sm:p-4">
         <div>
           <p className={SUBLABEL}>What We&apos;ll Make</p>
           <div className={FIXED_CARD}>
