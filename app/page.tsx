@@ -17,7 +17,7 @@ export default function Home() {
       {/* In-flow header: scrolls with the page (not a fixed overlay). The App
           Settings control lives here on the homepage only — it tunes the
           VisionAir interface, so it doesn't belong on the build screens. */}
-      <header className="mx-auto mb-12 flex max-w-2xl items-center justify-between">
+      <header className="mx-auto mb-8 flex max-w-2xl items-center justify-between sm:mb-12">
         <span className="text-sm font-medium tracking-wide text-foreground/60">VisionAir</span>
         <div className="flex items-center gap-4">
           <SettingsPanel />
@@ -30,14 +30,14 @@ export default function Home() {
         </div>
       </header>
 
-      <ScreenShell className="max-w-2xl p-10 text-center">
+      <ScreenShell className="max-w-2xl p-6 text-center sm:p-10">
         <p className="mb-3 text-sm tracking-wide text-foreground/50">VisionAir · Build Mode</p>
 
-        <h1 className="mb-5 text-4xl font-semibold tracking-tight text-foreground">
+        <h1 className="mb-4 text-3xl font-semibold tracking-tight text-foreground sm:mb-5 sm:text-4xl">
           Your AI agent starts every project blind.
         </h1>
 
-        <p className="mx-auto mb-8 max-w-xl text-base leading-7 text-foreground/70">
+        <p className="mx-auto mb-7 max-w-xl text-[15px] leading-7 text-foreground/70 sm:mb-8 sm:text-base">
           VisionAir interviews you about what&apos;s missing, then hands it a real blueprint —
           not a blank prompt. Ready-to-build context packs for Claude Code and other AI coding agents.
         </p>
