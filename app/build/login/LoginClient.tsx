@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import ScreenShell from "@/components/screen-shell";
 import ScreenIntro from "@/components/screen-intro";
 import PrimaryButton from "@/components/primary-button";
@@ -51,6 +52,14 @@ export default function LoginClient({ next }: { next: string }) {
 
   return (
     <ScreenShell>
+      {/* Escape hatch: the page is optional (Build Mode works without an account),
+          so always give the user a way out instead of trapping them here. */}
+      <Link
+        href="/"
+        className="mb-5 inline-flex items-center gap-1.5 text-sm text-foreground/55 transition hover:text-foreground"
+      >
+        <span aria-hidden="true">←</span> Back
+      </Link>
       <ScreenIntro
         eyebrow="Your library"
         title={isSignup ? "Create your account" : "Sign in"}
