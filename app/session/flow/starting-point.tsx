@@ -66,7 +66,7 @@ export default function StartingPoint({
         description="You can begin from wherever the signal is strongest. Choose the starting point that feels most honest."
       />
 
-      <div className="grid gap-4">
+      <div className="grid gap-2.5">
         {options.map((option) => {
           const isSelected = value === option.value
 
@@ -76,18 +76,18 @@ export default function StartingPoint({
               type="button"
               onClick={() => onSelect(option.value)}
               className={[
-                'w-full rounded-2xl border p-5 text-left transition',
+                'w-full rounded-2xl border p-4 text-left transition',
                 isSelected
                   ? 'border-foreground bg-foreground text-background shadow-sm'
                   : 'border-border/10 bg-card text-foreground hover:border-border/25 hover:bg-foreground/[0.02]',
               ].join(' ')}
             >
-              <div className="mb-2 text-base font-medium tracking-tight">
+              <div className="mb-0.5 text-[15px] font-medium tracking-tight">
                 {option.title}
               </div>
               <div
                 className={[
-                  'text-sm leading-6',
+                  'text-[13px] leading-5',
                   isSelected ? 'text-background/65' : 'text-foreground/65',
                 ].join(' ')}
               >
@@ -98,7 +98,7 @@ export default function StartingPoint({
         })}
       </div>
 
-      <div className="mt-8 flex items-center justify-between gap-4">
+      <div className="mt-5 flex items-center justify-between gap-4">
         <SecondaryButton onClick={onBack}>Back</SecondaryButton>
 
         <div className="flex flex-col items-end gap-3">

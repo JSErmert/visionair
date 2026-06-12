@@ -185,8 +185,8 @@ export default function EnhanceClient({ sessionId }: { sessionId: number }) {
               onChange={(e) => setDraft(e.target.value.slice(0, LIMITS.response))}
               maxLength={LIMITS.response}
               placeholder="Write freely. You do not need to sound polished — just be real."
-              rows={9}
-              className="w-full rounded-2xl border border-border/10 bg-card px-5 py-4 text-base leading-7 text-foreground outline-none transition placeholder:text-foreground/35 focus:border-border/25"
+              rows={5}
+              className="h-32 w-full rounded-2xl border border-border/10 bg-card px-5 py-4 text-base leading-7 text-foreground outline-none transition placeholder:text-foreground/35 focus:border-border/25 sm:h-44"
             />
             <p className={`mt-2 text-right text-xs ${draft.length >= LIMITS.response ? "font-medium text-red-600" : "text-foreground/40"}`}>
               {draft.length >= LIMITS.response
