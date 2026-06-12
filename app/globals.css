@@ -82,6 +82,16 @@ a {
   }
 }
 
+/* Desktop (mouse devices) render at an effective 150% — the zoom the design reads
+   best at. Scoped to hover + fine pointer so phones/tablets (no-hover, coarse
+   pointer) stay at 100%. pointer/hover are invariant under zoom, so unlike a
+   width-based query this won't flip-flop as the zoom changes the viewport. */
+@media (hover: hover) and (pointer: fine) {
+  body {
+    zoom: 1.5;
+  }
+}
+
 .aurora-field {
   position: fixed;
   inset: 0;
