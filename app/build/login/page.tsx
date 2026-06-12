@@ -8,8 +8,8 @@ export default async function LoginPage({
   const { next } = await searchParams;
   const dest = typeof next === "string" && next.startsWith("/") ? next : "/build/library";
   return (
-    <div className="min-h-screen px-6 py-10">
-      <div className="mx-auto w-full max-w-md">
+    <div className="flex min-h-[100dvh] flex-col justify-center px-6 py-8">
+      <div className="mx-auto w-full max-w-xl">
         <LoginClient next={dest} />
       </div>
     </div>
