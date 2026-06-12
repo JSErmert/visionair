@@ -20,67 +20,67 @@ export default function YourNextMove({ data, onNext, onBack }: YourNextMoveProps
       />
 
       <div className="space-y-5">
-        <section className="rounded-2xl border border-black/15 bg-white p-6">
-          <p className="mb-2 text-sm font-medium tracking-wide text-black/55">
+        <section className="rounded-2xl border border-border/15 bg-card p-6">
+          <p className="mb-2 text-sm font-medium tracking-wide text-foreground/55">
             Core Direction
           </p>
-          <p className="text-xl leading-8 text-black">
+          <p className="text-xl leading-8 text-foreground">
             {data.coreDirection}
           </p>
         </section>
 
-        <section className="rounded-2xl border border-black/10 bg-white p-5">
-          <p className="mb-2 text-sm font-medium tracking-wide text-black/55">
+        <section className="rounded-2xl border border-border/10 bg-card p-5">
+          <p className="mb-2 text-sm font-medium tracking-wide text-foreground/55">
             What to build first
           </p>
-          <p className="text-base leading-7 text-black/85">
+          <p className="text-base leading-7 text-foreground/85">
             {data.whatToBuildFirst}
           </p>
         </section>
 
-        <section className="rounded-2xl border border-black/10 bg-white p-5">
-          <p className="mb-2 text-sm font-medium tracking-wide text-black/55">
+        <section className="rounded-2xl border border-border/10 bg-card p-5">
+          <p className="mb-2 text-sm font-medium tracking-wide text-foreground/55">
             What this proves
           </p>
-          <p className="text-base leading-7 text-black/85">
+          <p className="text-base leading-7 text-foreground/85">
             {data.whatThisProves}
           </p>
         </section>
 
-        <section className="rounded-2xl border border-black/10 bg-white p-5">
-          <p className="mb-3 text-sm font-medium tracking-wide text-black/55">
+        <section className="rounded-2xl border border-border/10 bg-card p-5">
+          <p className="mb-3 text-sm font-medium tracking-wide text-foreground/55">
             Immediate action — next 24–72 hours
           </p>
           {data.immediateAction.length > 0 ? (
-            <ol className="space-y-2 text-base leading-7 text-black/85">
+            <ol className="space-y-2 text-base leading-7 text-foreground/85">
               {data.immediateAction.map((step, i) => (
                 <li key={i} className="flex gap-3">
-                  <span className="select-none text-black/40">{i + 1}.</span>
+                  <span className="select-none text-foreground/40">{i + 1}.</span>
                   <span>{step}</span>
                 </li>
               ))}
             </ol>
           ) : (
-            <p className="text-base leading-7 text-black/70">
+            <p className="text-base leading-7 text-foreground/70">
               Still taking shape.
             </p>
           )}
         </section>
 
-        <section className="rounded-2xl border border-black/15 bg-black/[0.04] p-5">
-          <p className="mb-2 text-sm font-medium tracking-wide text-black/55">
+        <section className="rounded-2xl border border-border/15 bg-foreground/[0.04] p-5">
+          <p className="mb-2 text-sm font-medium tracking-wide text-foreground/55">
             Constraint
           </p>
-          <p className="text-base leading-7 text-black">
+          <p className="text-base leading-7 text-foreground">
             {data.constraint}
           </p>
         </section>
 
-        <section className="rounded-2xl border border-black/10 bg-white p-5">
-          <p className="mb-2 text-sm font-medium tracking-wide text-black/55">
+        <section className="rounded-2xl border border-border/10 bg-card p-5">
+          <p className="mb-2 text-sm font-medium tracking-wide text-foreground/55">
             Why this works
           </p>
-          <p className="text-base leading-7 text-black/85">
+          <p className="text-base leading-7 text-foreground/85">
             {data.whyThisWorks}
           </p>
         </section>

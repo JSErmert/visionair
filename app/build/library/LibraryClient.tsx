@@ -59,14 +59,14 @@ function renderLite(md: string): ReactNode[] {
     if (/^##\s+/.test(line)) {
       flush(`u${i}`);
       out.push(
-        <p key={i} className="mt-4 mb-1 text-xs font-semibold uppercase tracking-wide text-black/45">
+        <p key={i} className="mt-4 mb-1 text-xs font-semibold uppercase tracking-wide text-foreground/45">
           {line.replace(/^##\s+/, "")}
         </p>,
       );
     } else if (/^###\s+/.test(line)) {
       flush(`u${i}`);
       out.push(
-        <p key={i} className="mt-2 font-medium text-black/75">
+        <p key={i} className="mt-2 font-medium text-foreground/75">
           {line.replace(/^###\s+/, "")}
         </p>,
       );
@@ -159,7 +159,7 @@ export default function LibraryClient() {
         />
         <a
           href="/build/login?next=/build/library"
-          className="inline-block rounded bg-black px-4 py-2 text-sm text-white"
+          className="inline-block rounded bg-foreground px-4 py-2 text-sm text-background"
         >
           Sign in →
         </a>
@@ -179,50 +179,50 @@ export default function LibraryClient() {
           <SecondaryButton onClick={() => setDetail(null)}>← All sessions</SecondaryButton>
           <a
             href={`/build/enhance/${detail.id}`}
-            className="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-black/85"
+            className="rounded-xl bg-foreground px-4 py-2 text-sm font-medium text-background transition hover:bg-foreground/85"
           >
             Enhance →
           </a>
         </div>
-        <div className="mb-6 rounded-2xl border border-black/10 bg-black/[0.02] p-5 text-sm leading-7 text-black/80">
+        <div className="mb-6 rounded-2xl border border-border/10 bg-foreground/[0.02] p-5 text-sm leading-7 text-foreground/80">
           {detail.summary && detail.summary.trim()
             ? renderLite(detail.summary)
-            : <p className="text-black/55">{detail.idea}</p>}
+            : <p className="text-foreground/55">{detail.idea}</p>}
         </div>
         <div className="flex flex-col gap-3">
           {detail.versions.map((v) => {
             const isOpen = openVersion === v.versionNo;
             return (
-              <div key={v.id} className="rounded-2xl border border-black/10 bg-white">
+              <div key={v.id} className="rounded-2xl border border-border/10 bg-card">
                 <button
                   type="button"
                   onClick={() => setOpenVersion(isOpen ? null : v.versionNo)}
                   className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left"
                 >
-                  <span className="text-base font-medium text-black">Version {v.versionNo}</span>
-                  <span className="text-xs text-black/45">{fmtDate(v.createdAt)}</span>
+                  <span className="text-base font-medium text-foreground">Version {v.versionNo}</span>
+                  <span className="text-xs text-foreground/45">{fmtDate(v.createdAt)}</span>
                 </button>
                 {isOpen && (
-                  <div className="border-t border-black/10 px-5 py-4">
+                  <div className="border-t border-border/10 px-5 py-4">
                     <button
                       type="button"
                       onClick={() => downloadVersion(detail.title, v)}
-                      className="mb-4 inline-block rounded bg-black px-4 py-2 text-sm text-white"
+                      className="mb-4 inline-block rounded bg-foreground px-4 py-2 text-sm text-background"
                     >
                       Download V{v.versionNo} pack →
                     </button>
-                    <p className="mb-2 text-xs uppercase tracking-wide text-black/40">Blueprint</p>
-                    <pre className="mb-5 max-h-80 overflow-auto whitespace-pre-wrap rounded-xl bg-black/[0.02] p-4 text-sm leading-relaxed text-black/85">
+                    <p className="mb-2 text-xs uppercase tracking-wide text-foreground/40">Blueprint</p>
+                    <pre className="mb-5 max-h-80 overflow-auto whitespace-pre-wrap rounded-xl bg-foreground/[0.02] p-4 text-sm leading-relaxed text-foreground/85">
                       {v.blueprint}
                     </pre>
-                    <p className="mb-2 text-xs uppercase tracking-wide text-black/40">
+                    <p className="mb-2 text-xs uppercase tracking-wide text-foreground/40">
                       Interview ({v.qa.length} answers)
                     </p>
                     <ol className="flex flex-col gap-3">
                       {v.qa.map((qa, i) => (
-                        <li key={i} className="rounded-xl border border-black/10 p-4">
-                          <p className="mb-1 text-sm font-medium text-black/75">{qa.question}</p>
-                          <p className="text-sm leading-6 text-black/65">{qa.response}</p>
+                        <li key={i} className="rounded-xl border border-border/10 p-4">
+                          <p className="mb-1 text-sm font-medium text-foreground/75">{qa.question}</p>
+                          <p className="text-sm leading-6 text-foreground/65">{qa.response}</p>
                         </li>
                       ))}
                     </ol>
@@ -245,11 +245,11 @@ export default function LibraryClient() {
         description="Every session you complete is saved here, most recent first. Open one to view its versions and re-download the pack."
       />
       {err && <p className="mb-5 text-sm text-red-600">{err}</p>}
-      {sessions === null && !err && <p className="text-sm text-black/55">Loading…</p>}
+      {sessions === null && !err && <p className="text-sm text-foreground/55">Loading…</p>}
       {sessions !== null && sessions.length === 0 && (
-        <div className="rounded-2xl border border-black/10 bg-white p-6 text-center">
-          <p className="mb-3 text-sm text-black/60">No saved sessions yet.</p>
-          <a href="/build" className="text-sm underline text-black/70 hover:text-black">
+        <div className="rounded-2xl border border-border/10 bg-card p-6 text-center">
+          <p className="mb-3 text-sm text-foreground/60">No saved sessions yet.</p>
+          <a href="/build" className="text-sm underline text-foreground/70 hover:text-foreground">
             Start your first build →
           </a>
         </div>
@@ -259,11 +259,11 @@ export default function LibraryClient() {
           {sessions.map((s) => (
             <li
               key={s.id}
-              className="flex items-center justify-between gap-3 rounded-2xl border border-black/10 bg-white px-5 py-4"
+              className="flex items-center justify-between gap-3 rounded-2xl border border-border/10 bg-card px-5 py-4"
             >
               <div className="min-w-0 flex-1">
-                <p className="truncate text-base font-medium text-black">{s.title}</p>
-                <p className="text-xs text-black/50">
+                <p className="truncate text-base font-medium text-foreground">{s.title}</p>
+                <p className="text-xs text-foreground/50">
                   {fmtDate(s.updatedAt)} · {s.versionCount}{" "}
                   {s.versionCount === 1 ? "version" : "versions"}
                 </p>
@@ -272,14 +272,14 @@ export default function LibraryClient() {
                 <button
                   type="button"
                   onClick={() => openSession(s.id)}
-                  className="rounded-xl border border-black/15 bg-white px-4 py-2 text-sm font-medium text-black transition hover:bg-black/[0.04]"
+                  className="rounded-xl border border-border/15 bg-card px-4 py-2 text-sm font-medium text-foreground transition hover:bg-foreground/[0.04]"
                 >
                   Open
                 </button>
                 <button
                   type="button"
                   onClick={() => removeSession(s.id)}
-                  className="rounded-xl border border-black/15 bg-white px-3 py-2 text-sm text-black/55 transition hover:border-red-300 hover:text-red-600"
+                  className="rounded-xl border border-border/15 bg-card px-3 py-2 text-sm text-foreground/55 transition hover:border-red-300 hover:text-red-600"
                   title="Delete session"
                 >
                   Delete
@@ -290,7 +290,7 @@ export default function LibraryClient() {
         </ul>
       )}
       <div className="mt-8">
-        <a href="/build" className="text-sm underline text-black/60 hover:text-black">
+        <a href="/build" className="text-sm underline text-foreground/60 hover:text-foreground">
           ← New build
         </a>
       </div>

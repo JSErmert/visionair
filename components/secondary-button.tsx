@@ -12,7 +12,7 @@ export default function SecondaryButton({
   return (
     <button
       onClick={onClick}
-      className="rounded-2xl border border-black/10 px-4 py-2 text-sm text-black/65 transition hover:border-black/20 hover:text-black"
+      className="rounded-2xl border border-border/10 px-4 py-2 text-sm text-foreground/65 transition hover:border-border/20 hover:text-foreground"
     >
       {children}
     </button>

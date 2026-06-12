@@ -25,7 +25,7 @@ const options: {
 }[] = [
   {
     value: 'strength',
-    title: 'Something I’m good at',
+    title: "Something I’m good at",
     body: 'I know I have real capability, but I have not fully structured it yet.',
   },
   {
@@ -35,7 +35,7 @@ const options: {
   },
   {
     value: 'idea',
-    title: 'An idea I can’t stop thinking about',
+    title: "An idea I can't stop thinking about",
     body: 'Something keeps returning to me, even if it is still unformed.',
   },
   {
@@ -45,7 +45,7 @@ const options: {
   },
   {
     value: 'unsure',
-    title: 'I’m not sure yet — help me find it',
+    title: "I'm not sure yet — help me find it",
     body: 'I know there is something here, but I cannot clearly name it yet.',
   },
 ]
@@ -66,7 +66,7 @@ export default function StartingPoint({
         description="You can begin from wherever the signal is strongest. Choose the starting point that feels most honest."
       />
 
-      <div className="grid gap-4">
+      <div className="grid gap-2.5">
         {options.map((option) => {
           const isSelected = value === option.value
 
@@ -76,19 +76,19 @@ export default function StartingPoint({
               type="button"
               onClick={() => onSelect(option.value)}
               className={[
-                'w-full rounded-2xl border p-5 text-left transition',
+                'w-full rounded-2xl border p-4 text-left transition',
                 isSelected
-                  ? 'border-black bg-black text-white shadow-sm'
-                  : 'border-black/10 bg-white text-black hover:border-black/25 hover:bg-black/[0.02]',
+                  ? 'border-foreground bg-foreground text-background shadow-sm'
+                  : 'border-border/10 bg-card text-foreground hover:border-border/25 hover:bg-foreground/[0.02]',
               ].join(' ')}
             >
-              <div className="mb-2 text-base font-medium tracking-tight">
+              <div className="mb-0.5 text-[15px] font-medium tracking-tight">
                 {option.title}
               </div>
               <div
                 className={[
-                  'text-sm leading-6',
-                  isSelected ? 'text-white/80' : 'text-black/65',
+                  'text-[13px] leading-5',
+                  isSelected ? 'text-background/65' : 'text-foreground/65',
                 ].join(' ')}
               >
                 {option.body}
@@ -98,11 +98,11 @@ export default function StartingPoint({
         })}
       </div>
 
-      <div className="mt-8 flex items-center justify-between gap-4">
+      <div className="mt-5 flex items-center justify-between gap-4">
         <SecondaryButton onClick={onBack}>Back</SecondaryButton>
 
         <div className="flex flex-col items-end gap-3">
-          <p className="text-sm text-black/45">There is no wrong place to begin.</p>
+          <p className="text-sm text-foreground/45">There is no wrong place to begin.</p>
           <PrimaryButton onClick={onNext} disabled={!canContinue}>
             Continue
           </PrimaryButton>

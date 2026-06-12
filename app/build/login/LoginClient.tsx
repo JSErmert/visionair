@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import ScreenShell from "@/components/screen-shell";
 import ScreenIntro from "@/components/screen-intro";
 import PrimaryButton from "@/components/primary-button";
@@ -45,6 +46,14 @@ export default function LoginClient({ next }: { next: string }) {
 
   return (
     <ScreenShell>
+      {/* Escape hatch: the page is optional (Build Mode works without an account),
+          so always give the user a way out instead of trapping them here. */}
+      <Link
+        href="/"
+        className="mb-5 inline-flex items-center gap-1.5 text-sm text-foreground/55 transition hover:text-foreground"
+      >
+        <span aria-hidden="true">←</span> Back
+      </Link>
       <ScreenIntro
         eyebrow="Your library"
         title="Sign in"
@@ -65,12 +74,12 @@ export default function LoginClient({ next }: { next: string }) {
             autoCorrect="off"
             autoCapitalize="off"
             spellCheck={false}
-            className="w-full rounded-2xl border border-black/10 bg-white px-5 py-3 text-base text-black outline-none transition placeholder:text-black/35 focus:border-black/25"
+            className="w-full rounded-2xl border border-border/10 bg-card px-5 py-3 text-base text-foreground outline-none transition placeholder:text-foreground/35 focus:border-border/25"
           />
           <button
             type="button"
             onClick={() => setShow((s) => !s)}
-            className="shrink-0 rounded-2xl border border-black/10 bg-white px-4 text-sm text-black/55 transition hover:bg-black/[0.04]"
+            className="shrink-0 rounded-2xl border border-border/10 bg-card px-4 text-sm text-foreground/55 transition hover:bg-foreground/[0.04]"
             aria-label={show ? "Hide password" : "Show password"}
           >
             {show ? "Hide" : "Show"}
@@ -78,7 +87,7 @@ export default function LoginClient({ next }: { next: string }) {
         </div>
         {err && <p className="mb-3 text-sm text-red-600">{err}</p>}
         <div className="flex items-center justify-between gap-4">
-          <a href="/build" className="text-sm underline text-black/55 hover:text-black">
+          <a href="/build" className="text-sm underline text-foreground/55 hover:text-foreground">
             ← New build
           </a>
           <PrimaryButton disabled={busy}>{busy ? "Signing in…" : "Sign in"}</PrimaryButton>

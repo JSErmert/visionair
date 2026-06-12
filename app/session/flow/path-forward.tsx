@@ -38,11 +38,11 @@ export default function PathForward({
       />
 
       <div className="grid gap-6">
-        <div className="rounded-2xl border border-black/10 bg-white p-5">
-          <p className="mb-3 text-sm font-medium text-black/75">
+        <div className="rounded-2xl border border-border/10 bg-card p-5">
+          <p className="mb-3 text-sm font-medium text-foreground/75">
             Immediate
           </p>
-          <p className="mb-3 text-sm text-black/50">
+          <p className="mb-3 text-sm text-foreground/50">
             What to do in the next 24–72 hours
           </p>
           <textarea
@@ -50,15 +50,15 @@ export default function PathForward({
             onChange={(e) => onImmediateChange(e.target.value)}
             rows={4}
             placeholder="Write the first immediate steps."
-            className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-base leading-7 text-black outline-none transition placeholder:text-black/35 focus:border-black/25"
+            className="w-full rounded-2xl border border-border/10 bg-card px-4 py-3 text-base leading-7 text-foreground outline-none transition placeholder:text-foreground/35 focus:border-border/25"
           />
         </div>
 
-        <div className="rounded-2xl border border-black/10 bg-white p-5">
-          <p className="mb-3 text-sm font-medium text-black/75">
+        <div className="rounded-2xl border border-border/10 bg-card p-5">
+          <p className="mb-3 text-sm font-medium text-foreground/75">
             Near-term
           </p>
-          <p className="mb-3 text-sm text-black/50">
+          <p className="mb-3 text-sm text-foreground/50">
             What to validate, shape, or test next
           </p>
           <textarea
@@ -66,13 +66,13 @@ export default function PathForward({
             onChange={(e) => onNearTermChange(e.target.value)}
             rows={4}
             placeholder="Write the next shaping or validation steps."
-            className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-base leading-7 text-black outline-none transition placeholder:text-black/35 focus:border-black/25"
+            className="w-full rounded-2xl border border-border/10 bg-card px-4 py-3 text-base leading-7 text-foreground outline-none transition placeholder:text-foreground/35 focus:border-border/25"
           />
         </div>
 
-        <div className="rounded-2xl border border-black/10 bg-white p-5">
-          <p className="mb-3 text-sm font-medium text-black/75">Later</p>
-          <p className="mb-3 text-sm text-black/50">
+        <div className="rounded-2xl border border-border/10 bg-card p-5">
+          <p className="mb-3 text-sm font-medium text-foreground/75">Later</p>
+          <p className="mb-3 text-sm text-foreground/50">
             What to deliberately postpone until the foundation is clearer
           </p>
           <textarea
@@ -80,7 +80,7 @@ export default function PathForward({
             onChange={(e) => onLaterChange(e.target.value)}
             rows={4}
             placeholder="Write what should wait until later."
-            className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-base leading-7 text-black outline-none transition placeholder:text-black/35 focus:border-black/25"
+            className="w-full rounded-2xl border border-border/10 bg-card px-4 py-3 text-base leading-7 text-foreground outline-none transition placeholder:text-foreground/35 focus:border-border/25"
           />
         </div>
       </div>

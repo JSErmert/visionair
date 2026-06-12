@@ -3,12 +3,22 @@
 @tailwind utilities;
 
 :root {
-  --background: #faf9f6;
-  --foreground: #111111;
-  --muted: rgba(17, 17, 17, 0.7);
-  --soft-muted: rgba(17, 17, 17, 0.5);
-  --border: rgba(17, 17, 17, 0.1);
-  --card: rgba(255, 255, 255, 0.8);
+  /* light (default values; dark default is applied via <html data-theme="dark">) */
+  --background-rgb: 250 249 246;
+  --foreground-rgb: 17 17 17;
+  --card-rgb: 255 255 255;
+  --border-rgb: 17 17 17;
+  --muted-rgb: 17 17 17;
+  --aurora-1: #4E6EF5;
+  --aurora-2: #9A5AE6;
+}
+
+:root[data-theme='dark'] {
+  --background-rgb: 7 8 12;
+  --foreground-rgb: 240 242 248;
+  --card-rgb: 17 23 38;
+  --border-rgb: 255 255 255;
+  --muted-rgb: 240 242 248;
 }
 
 * {
@@ -17,6 +27,10 @@
 
 html {
   font-size: 16px;
+  /* Base canvas color lives on <html> ONLY. The fixed .aurora-field sits at
+     z-index:-10; an opaque <body> background would paint over it and hide the
+     orbs. Keeping <body> transparent lets the deep-sea glow show through. */
+  background: rgb(var(--background-rgb));
 }
 
 html,
@@ -24,12 +38,8 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100%;
-  background: var(--background);
-  color: var(--foreground);
-  font-family:
-    Arial,
-    Helvetica,
-    sans-serif;
+  color: rgb(var(--foreground-rgb));
+  font-family: Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -59,7 +69,7 @@ a {
 }
 
 ::selection {
-  background: rgba(17, 17, 17, 0.12);
+  background: rgb(var(--foreground-rgb) / 0.12);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -71,3 +81,60 @@ a {
     scroll-behavior: auto !important;
   }
 }
+
+/* Desktop (mouse devices) render the CONTENT card at an effective ~140% — the
+   scale the design reads best at. Zooming the card (not <body>) keeps the page
+   chrome (header, settings panel) at natural size and lets the unzoomed centering
+   wrapper position the card correctly (zooming <body> broke vh-based centering and
+   over-sized the settings panel). Scoped to hover + fine pointer so phones/tablets
+   stay at 100%; pointer/hover are invariant under zoom (no width-query flip-flop). */
+@media (hover: hover) and (pointer: fine) {
+  .screen-card {
+    zoom: 1.4;
+  }
+}
+
+/* Touch devices (phones/tablets): zoom the card OUT so it fits the viewport and
+   the aurora shows around it instead of overflowing. pointer:coarse is the mobile
+   counterpart to the desktop rule above and is invariant under zoom (no flip-flop). */
+@media (pointer: coarse) {
+  .screen-card {
+    zoom: 0.8;
+  }
+}
+
+.aurora-field {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  overflow: hidden;
+  pointer-events: none;
+}
+.aurora-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(72px);
+  opacity: 0.72;
+  mix-blend-mode: screen; /* dark default: glow */
+}
+:root[data-theme='light'] .aurora-orb {
+  mix-blend-mode: multiply; /* light: soft tinted wash on cream */
+  opacity: 0.3;
+  filter: blur(90px);
+}
+.aurora-orb-1 { width: 68vw; height: 60vw; left: -10%; top: -12%;   background: radial-gradient(circle, var(--aurora-1), transparent 68%); }
+.aurora-orb-2 { width: 60vw; height: 58vw; right: -12%; top: -6%;   background: radial-gradient(circle, var(--aurora-2), transparent 68%); }
+.aurora-orb-3 { width: 72vw; height: 64vw; left: 12%;  top: 28%;    background: radial-gradient(circle, var(--aurora-1), transparent 70%); }
+.aurora-orb-4 { width: 58vw; height: 56vw; right: -8%; bottom: -14%; background: radial-gradient(circle, var(--aurora-2), transparent 68%); }
+.aurora-orb-5 { width: 52vw; height: 50vw; left: 30%;  bottom: -8%; background: radial-gradient(circle, var(--aurora-1), transparent 70%); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .aurora-orb-1 { animation: aurora-drift-1 42s ease-in-out infinite; }
+  .aurora-orb-2 { animation: aurora-drift-2 50s ease-in-out infinite; }
+  .aurora-orb-3 { animation: aurora-drift-3 46s ease-in-out infinite; }
+  .aurora-orb-4 { animation: aurora-drift-2 54s ease-in-out infinite; }
+  .aurora-orb-5 { animation: aurora-drift-1 48s ease-in-out infinite; }
+}
+@keyframes aurora-drift-1 { 0%,100% { transform: translate(0,0) scale(1); }    50% { transform: translate(6vw,8vh) scale(1.12); } }
+@keyframes aurora-drift-2 { 0%,100% { transform: translate(0,0) scale(1.05); } 50% { transform: translate(-7vw,5vh) scale(0.95); } }
+@keyframes aurora-drift-3 { 0%,100% { transform: translate(0,0) scale(1); }    50% { transform: translate(4vw,-6vh) scale(1.1); } }

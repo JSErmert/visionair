@@ -29,8 +29,8 @@ export default function VersionOne({
         description="We are not trying to build everything. We are identifying the simplest meaningful version that creates real value."
       />
 
-      <div className="mb-5 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-        <ul className="space-y-2 text-sm leading-6 text-black/65">
+      <div className="mb-5 rounded-2xl border border-border/10 bg-foreground/[0.02] p-5">
+        <ul className="space-y-2 text-sm leading-6 text-foreground/65">
           <li>• What absolutely needs to be included first?</li>
           <li>• What can wait until later?</li>
           <li>• What would prove this matters?</li>
@@ -44,25 +44,25 @@ export default function VersionOne({
           onChange={(e) => onChange(e.target.value)}
           rows={10}
           placeholder="Describe the smallest meaningful first version in a grounded way."
-          className="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 text-base leading-7 text-black outline-none transition placeholder:text-black/35 focus:border-black/25"
+          className="w-full rounded-2xl border border-border/10 bg-card px-5 py-4 text-base leading-7 text-foreground outline-none transition placeholder:text-foreground/35 focus:border-border/25"
         />
       </div>
 
-      <div className="mb-8 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-        <p className="mb-2 text-sm font-medium text-black/75">
+      <div className="mb-8 rounded-2xl border border-border/10 bg-foreground/[0.02] p-5">
+        <p className="mb-2 text-sm font-medium text-foreground/75">
           Your first buildable version
         </p>
 
         {canContinue ? (
           <ul className="space-y-2">
             {bullets.map((bullet, i) => (
-              <li key={i} className="text-base leading-7 text-black/80">
+              <li key={i} className="text-base leading-7 text-foreground/80">
                 • {bullet}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm leading-6 text-black/45">
+          <p className="text-sm leading-6 text-foreground/45">
             A grounded version-one statement will begin to take shape here.
           </p>
         )}

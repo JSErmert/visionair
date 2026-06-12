@@ -112,7 +112,7 @@ export default function EnhanceClient({ sessionId }: { sessionId: number }) {
           title="This pack is already strong."
           description="Nothing high-leverage to add right now — your current version holds up."
         />
-        <a href="/build/library" className="text-sm underline text-black/60 hover:text-black">
+        <a href="/build/library" className="text-sm underline text-foreground/60 hover:text-foreground">
           ← Back to your library
         </a>
       </ScreenShell>
@@ -121,27 +121,27 @@ export default function EnhanceClient({ sessionId }: { sessionId: number }) {
   if (phase === "finishing")
     return (
       <ScreenShell>
-        <p className="text-base text-black/70">Re-engineering your context pack…</p>
+        <p className="text-base text-foreground/70">Re-engineering your context pack…</p>
       </ScreenShell>
     );
 
   if (phase === "done")
     return (
       <ScreenShell>
-        <p className="mb-4 text-sm text-black/60 bg-black/[0.03] rounded-xl px-4 py-2">
+        <p className="mb-4 text-sm text-foreground/60 bg-foreground/[0.03] rounded-xl px-4 py-2">
           Saved as <strong>V{savedNo}</strong> to your library.{" "}
-          <a href="/build/library" className="underline hover:text-black">
+          <a href="/build/library" className="underline hover:text-foreground">
             View your library →
           </a>
         </p>
         <pre className="whitespace-pre-wrap text-sm leading-relaxed mb-5">{blueprint}</pre>
         {url && (
-          <a className="inline-block rounded bg-black px-4 py-2 text-white" href={url} download={`build-mode-pack-v${savedNo}.zip`}>
+          <a className="inline-block rounded bg-foreground px-4 py-2 text-background" href={url} download={`build-mode-pack-v${savedNo}.zip`}>
             Download V{savedNo} pack →
           </a>
         )}
-        <div className="mt-6 flex items-center justify-between gap-4 border-t border-black/10 pt-5">
-          <a href="/build/library" className="text-sm underline text-black/60 hover:text-black">
+        <div className="mt-6 flex items-center justify-between gap-4 border-t border-border/10 pt-5">
+          <a href="/build/library" className="text-sm underline text-foreground/60 hover:text-foreground">
             ← Your library
           </a>
         </div>
@@ -152,7 +152,7 @@ export default function EnhanceClient({ sessionId }: { sessionId: number }) {
     return (
       <ScreenShell>
         <p className="text-red-600 mb-3">Something went wrong: {err}</p>
-        <a href="/build/library" className="text-sm underline text-black/60 hover:text-black">
+        <a href="/build/library" className="text-sm underline text-foreground/60 hover:text-foreground">
           ← Back to your library
         </a>
       </ScreenShell>
@@ -168,16 +168,16 @@ export default function EnhanceClient({ sessionId }: { sessionId: number }) {
         title="Let's deepen this."
         description="Each answer sharpens the next version. Stop whenever you're ready — your work is saved as a new version."
       />
-      <p className="mb-3 text-xs uppercase tracking-wide text-black/40">
+      <p className="mb-3 text-xs uppercase tracking-wide text-foreground/40">
         {beyondTargets ? "All suggestions covered" : `Suggestion ${idx + 1} of ${targets.length}`}
       </p>
       {!beyondTargets && (
         <>
           {t.rationale && (
-            <p className="mb-2 text-xs text-black/45">Why this: {t.rationale}</p>
+            <p className="mb-2 text-xs text-foreground/45">Why this: {t.rationale}</p>
           )}
-          <div className="mb-5 rounded-2xl border border-black/10 bg-black/[0.02] p-5">
-            <p className="text-base leading-7 text-black/85">{t.question}</p>
+          <div className="mb-5 rounded-2xl border border-border/10 bg-foreground/[0.02] p-5">
+            <p className="text-base leading-7 text-foreground/85">{t.question}</p>
           </div>
           <div className="mb-4">
             <textarea
@@ -185,10 +185,10 @@ export default function EnhanceClient({ sessionId }: { sessionId: number }) {
               onChange={(e) => setDraft(e.target.value.slice(0, LIMITS.response))}
               maxLength={LIMITS.response}
               placeholder="Write freely. You do not need to sound polished — just be real."
-              rows={9}
-              className="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 text-base leading-7 text-black outline-none transition placeholder:text-black/35 focus:border-black/25"
+              rows={5}
+              className="h-32 w-full rounded-2xl border border-border/10 bg-card px-5 py-4 text-base leading-7 text-foreground outline-none transition placeholder:text-foreground/35 focus:border-border/25 sm:h-44"
             />
-            <p className={`mt-2 text-right text-xs ${draft.length >= LIMITS.response ? "font-medium text-red-600" : "text-black/40"}`}>
+            <p className={`mt-2 text-right text-xs ${draft.length >= LIMITS.response ? "font-medium text-red-600" : "text-foreground/40"}`}>
               {draft.length >= LIMITS.response
                 ? `character limit: ${LIMITS.response.toLocaleString()}`
                 : `${draft.length.toLocaleString()} / ${LIMITS.response.toLocaleString()}`}
@@ -203,12 +203,12 @@ export default function EnhanceClient({ sessionId }: { sessionId: number }) {
         </>
       )}
       {beyondTargets && (
-        <p className="mb-6 text-sm text-black/60">
+        <p className="mb-6 text-sm text-foreground/60">
           You've gone through every suggestion. Finish to save the improved version.
         </p>
       )}
-      <div className="mt-6 flex items-center justify-between gap-4 border-t border-black/10 pt-5">
-        <a href="/build/library" className="text-sm underline text-black/50 hover:text-black">
+      <div className="mt-6 flex items-center justify-between gap-4 border-t border-border/10 pt-5">
+        <a href="/build/library" className="text-sm underline text-foreground/50 hover:text-foreground">
           Cancel
         </a>
         <PrimaryButton onClick={finish}>Finish &amp; save new version</PrimaryButton>
