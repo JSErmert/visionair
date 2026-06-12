@@ -1,15 +1,9 @@
+import { useEffect } from "react";
 import ScreenIntro from "@/components/screen-intro";
 import ScreenShell from "@/components/screen-shell";
 import PrimaryButton from "@/components/primary-button";
 import SecondaryButton from "@/components/secondary-button";
-import {
-  defaultPlatformForPurpose,
-  canProceed,
-  type Level,
-  type Purpose,
-  type Platform,
-  type PersonaProfile,
-} from "@/lib/build-mode/persona";
+import { canProceed, type Level, type PersonaProfile } from "@/lib/build-mode/persona";
 
 type Props = {
   profile: PersonaProfile;
@@ -18,39 +12,18 @@ type Props = {
   onBack: () => void;
 };
 
-// Axis 3 — Purpose (what you're making). Goals, not identities. Slice 1 ships only
-// "build"; the rest are shown so the matrix reads as real, but marked coming soon.
-const PURPOSES: { value: Purpose; title: string; body: string }[] = [
-  { value: "build", title: "Build something", body: "Software, a tool, an app — I want the thing that gets built." },
-  { value: "operate", title: "Operate an AI", body: "An assistant that runs or governs an operation by my rules." },
-  { value: "automate", title: "Automate a workflow", body: "Streamline one repetitive process end to end." },
-  { value: "decide", title: "Decide a direction", body: "Turn a fuzzy idea into a clear path and next move." },
-  { value: "assist", title: "An ongoing helper", body: "A companion for a recurring task — it learns my world." },
-  { value: "unsure", title: "I'm not sure yet", body: "Help me figure out what I'm really making." },
-];
-
-// Axis 1 — Level / support. Tunes the interview, not respect. All three proceed in
-// Slice 1 — this is the fork we're proving.
+// Support level (user expertise) — the one wired axis. It forks the interview
+// (guidance / depth / voice); all three proceed.
 const LEVELS: { value: Level; title: string; body: string }[] = [
   { value: "beginner", title: "Guide me", body: "I'm new — assume best practices, walk me through it." },
   { value: "intermediate", title: "Structure me", body: "I know my goal; help me organize and fill the gaps." },
   { value: "expert", title: "Check my gaps", body: "I know what I want — be terse, catch what I missed." },
 ];
 
-// Axis 2 — Platform (where it ships). Pre-filled from Purpose, one click away.
-const PLATFORMS: { value: Platform; title: string }[] = [
-  { value: "claude-code", title: "Claude Code" },
-  { value: "claude-ai", title: "Claude.ai" },
-  { value: "chatgpt", title: "ChatGPT" },
-];
-
-function SoonTag() {
-  return (
-    <span className="ml-2 rounded-full bg-foreground/[0.06] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-foreground/45 align-middle">
-      soon
-    </span>
-  );
-}
+// Only Build × Claude Code is wired end to end today, so it's the single live option
+// shown below. The other purposes (Operate / Automate / Decide / Assist / Unsure) and
+// platforms (Claude.ai / ChatGPT) are deferred — see
+// docs/reference/visionair-future-plans.md — and return to the UI as each is wired.
 
 const cardCls = (sel: boolean) =>
   [
@@ -60,27 +33,28 @@ const cardCls = (sel: boolean) =>
       : "border-border/10 bg-card text-foreground hover:border-foreground/25 hover:bg-foreground/[0.02]",
   ].join(" ");
 
-// Title above a grouped, bordered selection box (the portfolio's title -> box rhythm).
 const GROUP_TITLE = "mb-2 font-serif text-lg font-medium text-foreground/85";
 const GROUP_BOX = "mb-4 rounded-2xl border border-border/10 bg-foreground/[0.02] p-3 sm:mb-7 sm:p-4";
 const SUBLABEL = "mb-2 text-xs uppercase tracking-wide text-foreground/40";
+const FIXED_CARD = "rounded-xl border border-border/15 bg-card p-3 sm:p-4";
 
 export default function PersonaSelector({ profile, onChange, onBegin, onBack }: Props) {
-  // Picking a Purpose re-suggests its default Platform (a suggestion, never a lock).
-  const pickPurpose = (purpose: Purpose) =>
-    onChange({ ...profile, purpose, platform: defaultPlatformForPurpose(purpose) });
+  // Build × Claude Code is the only live cell, so lock the profile to it — a stale
+  // stored purpose/platform from earlier would otherwise leave Begin disabled.
+  useEffect(() => {
+    if (profile.purpose !== "build" || profile.platform !== "claude-code") {
+      onChange({ ...profile, purpose: "build", platform: "claude-code" });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile.purpose, profile.platform]);
 
   const ready = canProceed(profile);
 
   return (
     <ScreenShell>
-      <ScreenIntro
-        eyebrow="Set up your build"
-        title="A few quick choices."
-        description="There's no wrong answer, and you can change these later — they just shape how we work together."
-      />
+      <ScreenIntro eyebrow="Set up your build" title="A few quick choices." />
 
-      {/* ── Box 1: support level ─────────────────────────────────────── */}
+      {/* The one real choice: support level (user expertise) — forks the interview. */}
       <h3 className={GROUP_TITLE}>What level of support do you need?</h3>
       <div className={GROUP_BOX}>
         <div className="grid gap-2.5 sm:grid-cols-3">
@@ -96,65 +70,32 @@ export default function PersonaSelector({ profile, onChange, onBegin, onBack }: 
         </div>
       </div>
 
-      {/* ── Box 2: what you're making + where it'll run (connected) ───── */}
+      {/* The single live cell, shown side by side. */}
       <h3 className={GROUP_TITLE}>What are you making, and where it&apos;ll run?</h3>
-      <div className="mb-5 rounded-2xl border border-border/10 bg-foreground/[0.02] p-3 sm:mb-8 sm:p-4">
-        <p className={SUBLABEL}>What are you making</p>
-        <div className="grid grid-cols-2 gap-2 sm:gap-3">
-          {PURPOSES.map((o) => {
-            const sel = profile.purpose === o.value;
-            return (
-              <button key={o.value} type="button" onClick={() => pickPurpose(o.value)} className={cardCls(sel)}>
-                <div className="mb-1 text-sm font-medium tracking-tight">
-                  {o.title}
-                  {o.value !== "build" && <SoonTag />}
-                </div>
-                <div className={["text-xs leading-5", sel ? "text-background/75" : "text-foreground/60"].join(" ")}>{o.body}</div>
-              </button>
-            );
-          })}
+      <div className="mb-4 grid grid-cols-2 gap-3 rounded-2xl border border-border/10 bg-foreground/[0.02] p-3 sm:p-4">
+        <div>
+          <p className={SUBLABEL}>What you&apos;re making</p>
+          <div className={FIXED_CARD}>
+            <div className="mb-1 text-sm font-medium tracking-tight">Build something</div>
+            <div className="text-xs leading-5 text-foreground/60">Software, a tool, an app — the thing that gets built.</div>
+          </div>
         </div>
-
-        <div className="my-4 border-t border-border/[0.08]" />
-
-        <p className={SUBLABEL}>
-          Where it&apos;ll run <span className="normal-case text-foreground/35">— suggested from your purpose, change anytime</span>
-        </p>
-        <div className="grid grid-cols-3 gap-2 sm:gap-3">
-          {PLATFORMS.map((o) => {
-            const sel = profile.platform === o.value;
-            return (
-              <button
-                key={o.value}
-                type="button"
-                onClick={() => onChange({ ...profile, platform: o.value })}
-                className={[
-                  "rounded-xl border px-4 py-3 text-center text-sm font-medium transition",
-                  sel
-                    ? "border-foreground bg-foreground text-background shadow-sm"
-                    : "border-border/10 bg-card text-foreground hover:border-foreground/25 hover:bg-foreground/[0.02]",
-                ].join(" ")}
-              >
-                {o.title}
-                {o.value !== "claude-code" && <SoonTag />}
-              </button>
-            );
-          })}
+        <div>
+          <p className={SUBLABEL}>Where it&apos;ll run</p>
+          <div className={FIXED_CARD}>
+            <div className="mb-1 text-sm font-medium tracking-tight">Claude Code</div>
+            <div className="text-xs leading-5 text-foreground/60">A ready-to-build context pack for your coding agent.</div>
+          </div>
         </div>
       </div>
 
+      <p className="mb-6 text-xs text-foreground/40">More makings and platforms are on the way — Build × Claude Code is live today.</p>
+
       <div className="flex items-center justify-between gap-4">
         <SecondaryButton onClick={onBack}>Back</SecondaryButton>
-        <div className="flex flex-col items-end gap-2">
-          {!ready && (
-            <p className="text-right text-xs text-foreground/45">
-              That combination is coming soon — <strong className="font-medium text-foreground/65">Build × Claude Code</strong> is live today.
-            </p>
-          )}
-          <PrimaryButton onClick={onBegin} disabled={!ready}>
-            Begin
-          </PrimaryButton>
-        </div>
+        <PrimaryButton onClick={onBegin} disabled={!ready}>
+          Begin
+        </PrimaryButton>
       </div>
     </ScreenShell>
   );

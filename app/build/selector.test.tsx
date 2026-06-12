@@ -18,26 +18,22 @@ function setup(profile: PersonaProfile = base) {
 const beginBtn = () => screen.getByRole("button", { name: /begin/i }) as HTMLButtonElement;
 
 describe("PersonaSelector", () => {
-  it("renders the boxed axes (support level + making/where)", () => {
+  it("renders the three support levels and the single live Build x Claude Code option", () => {
     setup();
-    expect(screen.getByText(/level of support/i)).toBeTruthy(); // support box title
-    expect(screen.getByText(/what are you making, and where/i)).toBeTruthy(); // combined box title
-    expect(screen.getByText("Claude.ai")).toBeTruthy(); // a Platform option
+    expect(screen.getByText(/level of support/i)).toBeTruthy();
+    expect(screen.getByText(/guide me/i)).toBeTruthy();
+    expect(screen.getByText(/structure me/i)).toBeTruthy();
+    expect(screen.getByText(/check my gaps/i)).toBeTruthy();
+    expect(screen.getByText("Build something")).toBeTruthy();
+    expect(screen.getByText("Claude Code")).toBeTruthy();
   });
 
-  it("renders the six purposes and tags every non-Build one 'soon'", () => {
+  it("does not show the deferred / unwired options", () => {
     setup();
-    [/build something/i, /operate an ai/i, /automate a workflow/i, /decide a direction/i, /ongoing helper/i, /not sure yet/i].forEach(
-      (label) => expect(screen.getByText(label)).toBeTruthy(),
-    );
-    // 5 non-build purposes + 2 non-claude-code platforms each carry a 'soon' tag.
-    expect(screen.getAllByText(/^soon$/i).length).toBeGreaterThanOrEqual(5);
-  });
-
-  it("picking a Purpose re-suggests its default Platform", () => {
-    const { onChange } = setup();
-    fireEvent.click(screen.getByText(/operate an ai/i));
-    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ purpose: "operate", platform: "claude-ai" }));
+    expect(screen.queryByText("Claude.ai")).toBeNull();
+    expect(screen.queryByText("ChatGPT")).toBeNull();
+    expect(screen.queryByText(/operate an ai/i)).toBeNull();
+    expect(screen.queryByText(/^soon$/i)).toBeNull();
   });
 
   it("changing Level calls onChange with the new level", () => {
@@ -46,19 +42,15 @@ describe("PersonaSelector", () => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ level: "beginner" }));
   });
 
-  it("enables Begin only for Build x Claude Code (else disabled + 'coming soon')", () => {
-    setup();
+  it("enables Begin (Build x Claude Code is live) and fires onBegin", () => {
+    const { onBegin } = setup();
     expect(beginBtn().disabled).toBe(false);
-    cleanup();
-    setup({ ...base, purpose: "operate", platform: "claude-ai" });
-    expect(beginBtn().disabled).toBe(true);
-    expect(screen.getByText(/coming soon/i)).toBeTruthy();
-  });
-
-  it("fires onBegin (Begin) and onBack (Back)", () => {
-    const { onBegin, onBack } = setup();
     fireEvent.click(beginBtn());
     expect(onBegin).toHaveBeenCalledOnce();
+  });
+
+  it("fires onBack from the Back button", () => {
+    const { onBack } = setup();
     fireEvent.click(screen.getByRole("button", { name: /back/i }));
     expect(onBack).toHaveBeenCalledOnce();
   });
