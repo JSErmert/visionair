@@ -71,25 +71,23 @@ export default function PersonaSelector({ profile, onChange, onBegin, onBack }: 
       </div>
 
       {/* The single live cell, shown side by side. */}
-      <h3 className={GROUP_TITLE}>What are you making, and where it&apos;ll run?</h3>
-      <div className="mb-4 grid grid-cols-2 gap-3 rounded-2xl border border-border/10 bg-foreground/[0.02] p-3 sm:p-4">
+      <h3 className={GROUP_TITLE}>Build Mode for Claude Code</h3>
+      <div className="mb-6 grid grid-cols-2 gap-3 rounded-2xl border border-border/10 bg-foreground/[0.02] p-3 sm:p-4">
         <div>
-          <p className={SUBLABEL}>What you&apos;re making</p>
+          <p className={SUBLABEL}>What We&apos;ll Make</p>
           <div className={FIXED_CARD}>
-            <div className="mb-1 text-sm font-medium tracking-tight">Build something</div>
-            <div className="text-xs leading-5 text-foreground/60">Software, a tool, an app — the thing that gets built.</div>
+            <div className="mb-1 text-sm font-medium tracking-tight">Build anything</div>
+            <div className="text-xs leading-5 text-foreground/60">An app, website, tool, software, or anything you&apos;d like.</div>
           </div>
         </div>
         <div>
           <p className={SUBLABEL}>Where it&apos;ll run</p>
           <div className={FIXED_CARD}>
             <div className="mb-1 text-sm font-medium tracking-tight">Claude Code</div>
-            <div className="text-xs leading-5 text-foreground/60">A ready-to-build context pack for your coding agent.</div>
+            <div className="text-xs leading-5 text-foreground/60">The context pack will be ready to build for your coding agent.</div>
           </div>
         </div>
       </div>
-
-      <p className="mb-6 text-xs text-foreground/40">More makings and platforms are on the way — Build × Claude Code is live today.</p>
 
       <div className="flex items-center justify-between gap-4">
         <SecondaryButton onClick={onBack}>Back</SecondaryButton>

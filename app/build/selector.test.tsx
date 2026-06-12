@@ -24,7 +24,7 @@ describe("PersonaSelector", () => {
     expect(screen.getByText(/guide me/i)).toBeTruthy();
     expect(screen.getByText(/structure me/i)).toBeTruthy();
     expect(screen.getByText(/check my gaps/i)).toBeTruthy();
-    expect(screen.getByText("Build something")).toBeTruthy();
+    expect(screen.getByText("Build anything")).toBeTruthy();
     expect(screen.getByText("Claude Code")).toBeTruthy();
   });
 
