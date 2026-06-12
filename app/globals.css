@@ -82,13 +82,15 @@ a {
   }
 }
 
-/* Desktop (mouse devices) render at an effective 150% — the zoom the design reads
-   best at. Scoped to hover + fine pointer so phones/tablets (no-hover, coarse
-   pointer) stay at 100%. pointer/hover are invariant under zoom, so unlike a
-   width-based query this won't flip-flop as the zoom changes the viewport. */
+/* Desktop (mouse devices) render the CONTENT card at an effective ~140% — the
+   scale the design reads best at. Zooming the card (not <body>) keeps the page
+   chrome (header, settings panel) at natural size and lets the unzoomed centering
+   wrapper position the card correctly (zooming <body> broke vh-based centering and
+   over-sized the settings panel). Scoped to hover + fine pointer so phones/tablets
+   stay at 100%; pointer/hover are invariant under zoom (no width-query flip-flop). */
 @media (hover: hover) and (pointer: fine) {
-  body {
-    zoom: 1.5;
+  .screen-card {
+    zoom: 1.4;
   }
 }
 
