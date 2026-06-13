@@ -44,12 +44,13 @@ repos:
         pass_filenames: false
         always_run: true
 
-  - repo: local
-    hooks:
-      - id: exogenius-gate
-        name: ExoGenius exogenous critique gate
-        entry: bash scripts/exogenius-gate.sh
-        language: system
-        stages: [pre-push]
-        pass_filenames: false
-        always_run: true
+  # ── ExoGenius auto-push gate REMOVED 2026-06-13 (deliberate re-scope) ──────────────
+  # Its pass-signal ("3 unaffiliated first-time users confirm the blueprint fit") is a
+  # VALIDATION MILESTONE, not a per-push code review. Gating EVERY push on a behavioral
+  # signal that no code change can establish made it pure friction — it blocked every
+  # ship (theme, UX, infra) and was overridden every time, which is gate-as-theater.
+  # The criterion is NOT deleted: it lives in the ExoGenius registry. Run it MANUALLY
+  # at the moment it actually applies — when claiming VisionAir's blueprints fit:
+  #   exogenius gate --deliverable visionair --evidence <session-logs>
+  # Re-add a properly-scoped gate (code-evidence for routine ships, the behavioral gate
+  # only for blueprint-logic changes / validation claims) when ExoGenius v2 lands.
