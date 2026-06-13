@@ -10,6 +10,17 @@ import ScreenShell from "@/components/screen-shell";
 import ScreenIntro from "@/components/screen-intro";
 import PrimaryButton from "@/components/primary-button";
 import SecondaryButton from "@/components/secondary-button";
+import BlueprintView from "@/components/blueprint-view";
+
+// Inline spinner (Tailwind animate-spin) for the "thinking" + "building" waits.
+function Spinner({ className = "" }: { className?: string }) {
+  return (
+    <span
+      aria-hidden
+      className={`inline-block animate-spin rounded-full border-2 border-foreground/20 border-t-foreground/70 ${className}`}
+    />
+  );
+}
 
 type Answer = { move: string; question: string; response: string };
 type Question = { move: string; text: string };
@@ -39,6 +50,9 @@ export default function BuildClient() {
   const [blueprint, setBlueprint] = useState("");
   const [saved, setSaved] = useState<{ sessionId: number; versionNo: number } | null>(null);
   const [err, setErr] = useState("");
+  // True while an LLM call is in flight (first/next question), so the UI shows a
+  // spinner instead of a stutter between screens.
+  const [thinking, setThinking] = useState(false);
 
   useEffect(() => {
     // Restore the persona picks first so a refresh keeps them on any phase.
@@ -157,12 +171,14 @@ export default function BuildClient() {
   // Ask the server for the NEXT question (or build the pack if the interview is
   // complete). Only ever called at the frontier — never when revisiting history.
   async function askNext(effectiveIdea: string, qs: Question[], rs: string[]) {
+    setThinking(true);
     const ans = answersFrom(qs, rs);
     const r = await post("question", ans, effectiveIdea);
     const data = await r.json();
     if (data.done) {
       setComplete(true);
       saveProgress({ idea: effectiveIdea, questions: qs, responses: rs, idx: qs.length - 1, complete: true });
+      setThinking(false);
       await runPack(effectiveIdea, ans);
     } else {
       const nq: Question = { move: data.move, text: data.text };
@@ -174,6 +190,7 @@ export default function BuildClient() {
       setDraft("");
       setComplete(false);
       saveProgress({ idea: effectiveIdea, questions: nqs, responses: nrs, idx: nqs.length - 1, complete: false });
+      setThinking(false);
       setPhase("interview");
     }
   }
@@ -245,9 +262,21 @@ export default function BuildClient() {
 
   const guard = (fn: () => Promise<void>) =>
     fn().catch((e) => {
+      setThinking(false);
       setErr(String(e.message || e));
       setPhase("error");
     });
+
+  if (thinking)
+    return (
+      <ScreenShell>
+        <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
+          <Spinner className="h-7 w-7" />
+          <p className="text-base text-foreground/75">Thinking through your answer…</p>
+          <p className="text-sm text-foreground/40">VisionAir is shaping the next question.</p>
+        </div>
+      </ScreenShell>
+    );
 
   if (phase === "persona")
     return (
@@ -346,7 +375,25 @@ export default function BuildClient() {
   if (phase === "building")
     return (
       <ScreenShell>
-        <p className="text-base text-foreground/70">Engineering your context pack…</p>
+        <ScreenIntro
+          eyebrow="Almost there"
+          title="Engineering your context pack…"
+          description="VisionAir is writing your blueprint and assembling a ready-to-build file pack for your coding agent."
+        />
+        <div className="mt-1">
+          <div className="mb-2 flex items-center justify-between text-sm text-foreground/55">
+            <span>Estimated wait time: ~2 minutes</span>
+            <span className="inline-flex items-center gap-2">
+              <Spinner className="h-4 w-4" /> Working…
+            </span>
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-foreground/10">
+            <div className="build-bar h-full rounded-full bg-foreground/60" />
+          </div>
+          <p className="mt-3 text-xs text-foreground/40">
+            Keep this tab open — it switches to your finished pack automatically.
+          </p>
+        </div>
       </ScreenShell>
     );
 
@@ -369,15 +416,37 @@ export default function BuildClient() {
             first and your builds save automatically. Your pack is still ready to download below.
           </p>
         )}
-        <pre className="whitespace-pre-wrap text-sm leading-relaxed mb-5">{blueprint}</pre>
-        <a
-          className="inline-block rounded bg-foreground px-4 py-2 text-background"
-          href={url}
-          download="build-mode-pack.zip"
-        >
-          Download your build pack →
-        </a>
-        <p className="mt-3 mb-6 text-sm opacity-70">Unzip into a fresh repo and open it in Claude Code — start with LAUNCH.md.</p>
+        <div className="mb-6 rounded-2xl border border-border/10 bg-foreground/[0.02] p-6">
+          <BlueprintView markdown={blueprint} />
+        </div>
+
+        <div className="mb-6 rounded-2xl border border-border/10 bg-foreground/[0.03] p-6">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-foreground/55">
+            What to do next
+          </p>
+          <ol className="mb-5 ml-5 list-decimal space-y-2 text-[0.95rem] leading-7 text-foreground/80">
+            <li>Download your build pack below.</li>
+            <li>Unzip it into a new, empty folder on your computer.</li>
+            <li>
+              Open that folder in <strong className="text-foreground">Claude Code</strong> (or your AI
+              coding agent).
+            </li>
+            <li>
+              Tell the agent:{" "}
+              <code className="rounded bg-foreground/10 px-1.5 py-0.5 font-mono text-[0.85em]">
+                Start with LAUNCH.md
+              </code>{" "}
+              — it walks the agent through building your project, step by step.
+            </li>
+          </ol>
+          <a
+            className="inline-flex items-center gap-1.5 rounded-xl bg-foreground px-5 py-3 text-sm font-medium text-background transition hover:opacity-90"
+            href={url}
+            download="build-mode-pack.zip"
+          >
+            Download your build pack →
+          </a>
+        </div>
         <div className="flex items-center justify-between gap-4 border-t border-border/10 pt-5">
           <SecondaryButton onClick={startOver}>Start a new build</SecondaryButton>
           <a

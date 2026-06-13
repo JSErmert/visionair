@@ -35,7 +35,7 @@ export default function SeedPrompt({
   onBack,
 }: SeedPromptProps) {
   const prompt = useMemo(() => {
-    if (!entryPoint) return 'What feels most real for you right now?'
+    if (!entryPoint) return 'How do you envision the idea you want to develop?'
     return promptMap[entryPoint]
   }, [entryPoint])
 
@@ -45,7 +45,7 @@ export default function SeedPrompt({
     <ScreenShell>
       <ScreenIntro
         eyebrow="Discovering your path"
-        title="Let's begin with what feels real."
+        title="Let's start with your idea."
         description="You do not need to sound polished. A real answer is enough."
       />
 
@@ -63,17 +63,10 @@ export default function SeedPrompt({
         />
       </div>
 
-      <div className="mb-8 flex items-center justify-between gap-4">
+      <div className="mb-8">
         <p className="text-sm text-foreground/45">
           VisionAir will help clarify what matters most.
         </p>
-
-        <button
-          type="button"
-          className="rounded-2xl border border-border/10 px-4 py-2 text-sm text-foreground/55 transition hover:border-border/20 hover:text-foreground"
-        >
-          Voice input
-        </button>
       </div>
 
       <div className="flex items-center justify-between gap-4">

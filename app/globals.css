@@ -138,3 +138,9 @@ a {
 @keyframes aurora-drift-1 { 0%,100% { transform: translate(0,0) scale(1); }    50% { transform: translate(6vw,8vh) scale(1.12); } }
 @keyframes aurora-drift-2 { 0%,100% { transform: translate(0,0) scale(1.05); } 50% { transform: translate(-7vw,5vh) scale(0.95); } }
 @keyframes aurora-drift-3 { 0%,100% { transform: translate(0,0) scale(1); }    50% { transform: translate(4vw,-6vh) scale(1.1); } }
+
+/* Build Mode "engineering your pack" progress bar — a time-based estimate (no real
+   progress stream), so it eases toward ~95% over ~2 min; the screen swaps to the
+   finished pack when it's actually done. */
+@keyframes build-bar-fill { from { width: 4%; } to { width: 95%; } }
+.build-bar { width: 4%; animation: build-bar-fill 120s cubic-bezier(0.1, 0.7, 0.2, 1) forwards; }
