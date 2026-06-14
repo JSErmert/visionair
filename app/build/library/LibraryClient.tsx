@@ -387,9 +387,12 @@ export default function LibraryClient() {
           ))}
         </ul>
       )}
-      <div className="mt-8">
-        <a href="/build" className="text-sm underline text-foreground/60 hover:text-foreground">
-          ← New build
+      <div className="mt-8 flex justify-center">
+        <a
+          href="/build"
+          className="inline-flex rounded-2xl border border-foreground bg-foreground px-6 py-3 text-sm font-medium text-background transition hover:opacity-90"
+        >
+          Open Build Mode →
         </a>
       </div>
     </ScreenShell>
