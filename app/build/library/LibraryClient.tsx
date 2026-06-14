@@ -4,6 +4,7 @@ import JSZip from "jszip";
 import ScreenShell from "@/components/screen-shell";
 import ScreenIntro from "@/components/screen-intro";
 import SecondaryButton from "@/components/secondary-button";
+import Spinner from "@/components/spinner";
 
 type SessionSummary = { id: number; title: string; updatedAt: string; versionCount: number };
 type QAItem = { move: string; question: string; response: string };
@@ -104,6 +105,7 @@ async function downloadVersion(title: string, v: VersionDetail) {
 export default function LibraryClient() {
   const [sessions, setSessions] = useState<SessionSummary[] | null>(null);
   const [detail, setDetail] = useState<SessionDetail | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
   const [openVersion, setOpenVersion] = useState<number | null>(null);
   const [needsLogin, setNeedsLogin] = useState(false);
   const [err, setErr] = useState("");
@@ -125,6 +127,7 @@ export default function LibraryClient() {
   function openSession(id: number) {
     setErr("");
     setDetail(null);
+    setLoadingDetail(true);
     fetch(`/api/sessions/${id}`)
       .then(async (r) => {
         if (r.status === 401) {
@@ -136,7 +139,8 @@ export default function LibraryClient() {
         setDetail(d.session);
         setOpenVersion(d.session?.versions?.[0]?.versionNo ?? null);
       })
-      .catch((e) => setErr(String(e.message || e)));
+      .catch((e) => setErr(String(e.message || e)))
+      .finally(() => setLoadingDetail(false));
   }
 
   function removeSession(id: number) {
@@ -165,6 +169,18 @@ export default function LibraryClient() {
         </a>
       </ScreenShell>
     );
+
+  // --- Loading a session (buffer between click and the stored record) ---
+  if (loadingDetail) {
+    return (
+      <ScreenShell>
+        <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
+          <Spinner className="h-8 w-8" />
+          <p className="text-sm text-foreground/55">Opening your session…</p>
+        </div>
+      </ScreenShell>
+    );
+  }
 
   // --- Session detail view ---
   if (detail) {

@@ -11,16 +11,7 @@ import ScreenIntro from "@/components/screen-intro";
 import PrimaryButton from "@/components/primary-button";
 import SecondaryButton from "@/components/secondary-button";
 import BlueprintView from "@/components/blueprint-view";
-
-// Inline spinner (Tailwind animate-spin) for the "thinking" + "building" waits.
-function Spinner({ className = "" }: { className?: string }) {
-  return (
-    <span
-      aria-hidden
-      className={`inline-block animate-spin rounded-full border-2 border-foreground/20 border-t-foreground/70 ${className}`}
-    />
-  );
-}
+import Spinner from "@/components/spinner";
 
 type Answer = { move: string; question: string; response: string };
 type Question = { move: string; text: string };
