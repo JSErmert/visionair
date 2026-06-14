@@ -387,7 +387,13 @@ export default function LibraryClient() {
           ))}
         </ul>
       )}
-      <div className="mt-8 flex justify-center">
+      <div className="relative mt-8 flex items-center justify-center">
+        <a
+          href="/"
+          className="absolute left-0 rounded-2xl border border-border/10 px-4 py-2 text-sm text-foreground/65 transition hover:border-border/20 hover:text-foreground"
+        >
+          ← Home
+        </a>
         <a
           href="/build"
           className="inline-flex rounded-2xl border border-foreground bg-foreground px-6 py-3 text-sm font-medium text-background transition hover:opacity-90"
