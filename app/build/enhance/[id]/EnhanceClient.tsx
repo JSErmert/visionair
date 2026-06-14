@@ -4,6 +4,7 @@ import ScreenShell from "@/components/screen-shell";
 import ScreenIntro from "@/components/screen-intro";
 import PrimaryButton from "@/components/primary-button";
 import SecondaryButton from "@/components/secondary-button";
+import Spinner from "@/components/spinner";
 import { LIMITS } from "@/lib/build-mode/limits";
 
 type Target = { move: string; question: string; rationale: string };
@@ -96,11 +97,13 @@ export default function EnhanceClient({ sessionId }: { sessionId: number }) {
   if (phase === "auditing")
     return (
       <ScreenShell>
-        <ScreenIntro
-          eyebrow="Enhancing your pack"
-          title="Finding the highest-leverage gaps…"
-          description="Reading your pack for open questions and thin spots worth deepening."
-        />
+        <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
+          <Spinner className="h-7 w-7" />
+          <p className="text-base text-foreground/75">Finding the highest-leverage gaps…</p>
+          <p className="text-sm text-foreground/40">
+            Reading your pack for open questions and thin spots worth deepening.
+          </p>
+        </div>
       </ScreenShell>
     );
 
@@ -121,7 +124,11 @@ export default function EnhanceClient({ sessionId }: { sessionId: number }) {
   if (phase === "finishing")
     return (
       <ScreenShell>
-        <p className="text-base text-foreground/70">Re-engineering your context pack…</p>
+        <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
+          <Spinner className="h-7 w-7" />
+          <p className="text-base text-foreground/75">Re-engineering your context pack…</p>
+          <p className="text-sm text-foreground/40">Saving the improved version to your library.</p>
+        </div>
       </ScreenShell>
     );
 

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import JSZip from "jszip";
 import ScreenShell from "@/components/screen-shell";
 import ScreenIntro from "@/components/screen-intro";
@@ -109,6 +109,10 @@ export default function LibraryClient() {
   const [openVersion, setOpenVersion] = useState<number | null>(null);
   const [needsLogin, setNeedsLogin] = useState(false);
   const [err, setErr] = useState("");
+  // Cache fetched session details so the loading signal shows only on the FIRST
+  // open of a given session; re-opens load instantly (no LLM ever runs on open —
+  // title + description are locked, so a re-open is a pure cache hit).
+  const detailCache = useRef<Map<number, SessionDetail>>(new Map());
 
   useEffect(() => {
     fetch("/api/sessions")
@@ -126,6 +130,14 @@ export default function LibraryClient() {
 
   function openSession(id: number) {
     setErr("");
+    // Re-open: serve the already-loaded session instantly, no loading screen.
+    const cached = detailCache.current.get(id);
+    if (cached) {
+      setDetail(cached);
+      setOpenVersion(cached.versions?.[0]?.versionNo ?? null);
+      return;
+    }
+    // First open of this session: show the loading signal during the fetch.
     setDetail(null);
     setLoadingDetail(true);
     fetch(`/api/sessions/${id}`)
@@ -136,6 +148,7 @@ export default function LibraryClient() {
         }
         if (!r.ok) throw new Error("Could not open that session.");
         const d = await r.json();
+        detailCache.current.set(id, d.session);
         setDetail(d.session);
         setOpenVersion(d.session?.versions?.[0]?.versionNo ?? null);
       })
@@ -148,6 +161,7 @@ export default function LibraryClient() {
     fetch(`/api/sessions/${id}`, { method: "DELETE" })
       .then((r) => {
         if (!r.ok) throw new Error("Delete failed.");
+        detailCache.current.delete(id);
         setSessions((prev) => (prev ? prev.filter((s) => s.id !== id) : prev));
       })
       .catch((e) => setErr(String(e.message || e)));
