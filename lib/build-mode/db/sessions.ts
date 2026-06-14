@@ -65,6 +65,22 @@ export async function updateSessionSummary(
   await sql`UPDATE sessions SET summary = ${summary} WHERE id = ${sessionId}`;
 }
 
+// Rename a session, scoped to its owner. Returns true if a row was updated
+// (false when the session does not exist or is not owned by this user). The
+// title is locked to manual edits only — generation never overwrites it.
+export async function updateSessionTitle(
+  sql: SqlClient,
+  ownerId: number,
+  sessionId: number,
+  title: string,
+): Promise<boolean> {
+  const rows = (await sql`
+    UPDATE sessions SET title = ${title}, updated_at = now()
+    WHERE id = ${sessionId} AND owner_id = ${ownerId}
+    RETURNING id`) as { id: number }[];
+  return rows.length > 0;
+}
+
 const asJson = <T,>(v: unknown): T => (typeof v === "string" ? JSON.parse(v) : (v as T));
 
 export async function getSessionWithVersions(

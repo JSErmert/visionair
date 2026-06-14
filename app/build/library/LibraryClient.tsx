@@ -109,6 +109,9 @@ export default function LibraryClient() {
   const [openVersion, setOpenVersion] = useState<number | null>(null);
   const [needsLogin, setNeedsLogin] = useState(false);
   const [err, setErr] = useState("");
+  const [renaming, setRenaming] = useState(false);
+  const [titleDraft, setTitleDraft] = useState("");
+  const [savingTitle, setSavingTitle] = useState(false);
   // Cache fetched session details so the loading signal shows only on the FIRST
   // open of a given session; re-opens load instantly (no LLM ever runs on open —
   // title + description are locked, so a re-open is a pure cache hit).
@@ -154,6 +157,34 @@ export default function LibraryClient() {
       })
       .catch((e) => setErr(String(e.message || e)))
       .finally(() => setLoadingDetail(false));
+  }
+
+  function saveTitle() {
+    if (!detail) return;
+    const next = titleDraft.replace(/\s+/g, " ").trim();
+    if (!next) {
+      setRenaming(false);
+      return;
+    }
+    setSavingTitle(true);
+    setErr("");
+    fetch(`/api/sessions/${detail.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: next }),
+    })
+      .then(async (r) => {
+        if (!r.ok) throw new Error("Could not rename this session.");
+        const d = await r.json();
+        const saved = d.title as string;
+        setDetail((prev) => (prev ? { ...prev, title: saved } : prev));
+        setSessions((prev) => (prev ? prev.map((s) => (s.id === detail.id ? { ...s, title: saved } : s)) : prev));
+        const cached = detailCache.current.get(detail.id);
+        if (cached) detailCache.current.set(detail.id, { ...cached, title: saved });
+        setRenaming(false);
+      })
+      .catch((e) => setErr(String(e.message || e)))
+      .finally(() => setSavingTitle(false));
   }
 
   function removeSession(id: number) {
@@ -207,13 +238,50 @@ export default function LibraryClient() {
         />
         <div className="mb-5 flex items-center justify-between gap-4">
           <SecondaryButton onClick={() => setDetail(null)}>← All sessions</SecondaryButton>
-          <a
-            href={`/build/enhance/${detail.id}`}
-            className="rounded-xl bg-foreground px-4 py-2 text-sm font-medium text-background transition hover:bg-foreground/85"
-          >
-            Enhance →
-          </a>
+          <div className="flex items-center gap-2">
+            <SecondaryButton
+              onClick={() => {
+                setTitleDraft(detail.title);
+                setRenaming(true);
+              }}
+            >
+              Rename
+            </SecondaryButton>
+            <a
+              href={`/build/enhance/${detail.id}`}
+              className="rounded-xl bg-foreground px-4 py-2 text-sm font-medium text-background transition hover:bg-foreground/85"
+            >
+              Enhance →
+            </a>
+          </div>
         </div>
+        {renaming && (
+          <div className="mb-5 flex flex-col gap-2 rounded-2xl border border-border/10 bg-foreground/[0.02] p-4 sm:flex-row sm:items-center">
+            <input
+              value={titleDraft}
+              onChange={(e) => setTitleDraft(e.target.value.slice(0, 80))}
+              maxLength={80}
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter") saveTitle();
+                if (e.key === "Escape") setRenaming(false);
+              }}
+              placeholder="Project title"
+              className="flex-1 rounded-xl border border-border/15 bg-card px-4 py-2 text-sm text-foreground outline-none transition focus:border-border/30"
+            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={saveTitle}
+                disabled={savingTitle}
+                className="rounded-xl bg-foreground px-4 py-2 text-sm font-medium text-background transition hover:bg-foreground/85 disabled:opacity-60"
+              >
+                {savingTitle ? "Saving…" : "Save"}
+              </button>
+              <SecondaryButton onClick={() => setRenaming(false)}>Cancel</SecondaryButton>
+            </div>
+          </div>
+        )}
         <div className="mb-6 rounded-2xl border border-border/10 bg-foreground/[0.02] p-5 text-sm leading-7 text-foreground/80">
           {detail.summary && detail.summary.trim()
             ? renderLite(detail.summary)

@@ -1,32 +1,60 @@
 import Link from 'next/link'
 import ScreenShell from '@/components/screen-shell'
 import SettingsPanel from '@/components/theme/SettingsPanel'
+import AccountMenu from '@/components/account-menu'
+import { getOwnerIdServer } from '@/lib/build-mode/server-auth'
+import { getSql } from '@/lib/build-mode/db/client'
+import { getOwnerById } from '@/lib/build-mode/db/owners'
+import { listSessions } from '@/lib/build-mode/db/sessions'
 
-// Home / front door. v2 = Build Mode only (the /session guided flow stays in the
-// repo but is unlinked; the persona delineation that brings it back arrives in
-// v3). Static server component with real anchor links — renders and navigates
-// with zero client JS (fail-open). Content sits inside the ScreenShell card (the
-// boxed layout app/session uses), Build-Mode-only.
-//
-// Login is OPTIONAL: Build Mode generates a pack without an account; logging in
-// only unlocks the saved library (/api/sessions is the only owner-gated path).
+// Home / front door. Session-aware: when signed in, the nav shows the account
+// (email or chosen name) with an inline menu, the "no account needed" caption is
+// dropped, and the saved library is listed below the Build Mode block. The read
+// is fail-open — any cookie/DB error renders the logged-out view rather than
+// erroring. Login stays OPTIONAL (Build Mode generates a pack without an account;
+// logging in only unlocks the saved library).
 
-export default function Home() {
+function fmtDate(s: string): string {
+  try {
+    return new Date(s).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+  } catch {
+    return s
+  }
+}
+
+export default async function Home() {
+  let account: { email: string | null; name: string | null } | null = null
+  let history: { id: number; title: string; updatedAt: string }[] = []
+  try {
+    const ownerId = await getOwnerIdServer()
+    if (ownerId !== null) {
+      const sql = getSql()
+      const [owner, sessions] = await Promise.all([getOwnerById(sql, ownerId), listSessions(sql, ownerId)])
+      if (owner) account = { email: owner.email, name: owner.name }
+      history = sessions.map((s) => ({ id: s.id, title: s.title, updatedAt: s.updatedAt }))
+    }
+  } catch {
+    account = null
+    history = []
+  }
+  const signedIn = account !== null
+
   return (
     <main className="relative px-6 pb-16 pt-6">
-      {/* In-flow header: scrolls with the page (not a fixed overlay). The App
-          Settings control lives here on the homepage only — it tunes the
-          VisionAir interface, so it doesn't belong on the build screens. */}
       <header className="mx-auto mb-8 flex max-w-2xl items-center justify-between sm:mb-12">
         <span className="text-sm font-medium tracking-wide text-foreground/60">VisionAir</span>
         <div className="flex items-center gap-4">
           <SettingsPanel />
-          <Link
-            href="/build/login"
-            className="text-sm text-foreground/45 transition hover:text-foreground/70"
-          >
-            Log in
-          </Link>
+          {signedIn ? (
+            <AccountMenu email={account!.email} name={account!.name} />
+          ) : (
+            <Link
+              href="/build/login"
+              className="text-sm text-foreground/45 transition hover:text-foreground/70"
+            >
+              Log in
+            </Link>
+          )}
         </div>
       </header>
 
@@ -50,11 +78,45 @@ export default function Home() {
             Open Build Mode →
           </Link>
 
-          <p className="text-sm text-foreground/45">
-            No account needed to try it. Log in to save your library.
-          </p>
+          {!signedIn && (
+            <p className="text-sm text-foreground/45">
+              No account needed to try it. Log in to save your library.
+            </p>
+          )}
         </div>
       </ScreenShell>
+
+      {signedIn && (
+        <section className="mx-auto mt-8 max-w-2xl">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-xs uppercase tracking-wide text-foreground/40">Your library</p>
+            {history.length > 0 && (
+              <Link href="/build/library" className="text-sm text-foreground/55 underline hover:text-foreground">
+                Open library →
+              </Link>
+            )}
+          </div>
+          {history.length === 0 ? (
+            <p className="rounded-2xl border border-border/10 bg-card px-5 py-4 text-sm text-foreground/50">
+              No saved builds yet — finish a build to save it here.
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {history.map((s) => (
+                <li key={s.id}>
+                  <Link
+                    href="/build/library"
+                    className="flex items-center justify-between gap-3 rounded-2xl border border-border/10 bg-card px-5 py-4 transition hover:border-border/20"
+                  >
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{s.title}</span>
+                    <span className="shrink-0 text-xs text-foreground/45">{fmtDate(s.updatedAt)}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
     </main>
   )
 }

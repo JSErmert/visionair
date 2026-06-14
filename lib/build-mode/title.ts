@@ -64,6 +64,17 @@ export function titleFromIdea(idea: string): string {
   return cap(title);
 }
 
+/**
+ * Clean a user-typed title for the manual rename feature. Unlike sanitizeTitle
+ * (which guards against LLM blobs), this trusts the human: it just collapses
+ * whitespace and caps length, returning null only when the result is empty.
+ */
+export function cleanManualTitle(raw: string): string | null {
+  const s = (raw || "").replace(/\s+/g, " ").trim();
+  if (!s) return null;
+  return cap(s);
+}
+
 export async function generateTitle(
   idea: string,
   identity: string,

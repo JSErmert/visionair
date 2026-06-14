@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS owners (
 ALTER TABLE owners ADD COLUMN IF NOT EXISTS email TEXT;
 ALTER TABLE owners ADD COLUMN IF NOT EXISTS password_hash TEXT;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_owners_email ON owners (LOWER(email)) WHERE email IS NOT NULL;
+-- Optional display name. When set, the UI shows it instead of the email.
+ALTER TABLE owners ADD COLUMN IF NOT EXISTS name TEXT;
 
 CREATE TABLE IF NOT EXISTS sessions (
   id BIGSERIAL PRIMARY KEY,

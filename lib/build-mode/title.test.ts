@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateTitle, sanitizeTitle, titleFromIdea } from "./title";
+import { generateTitle, sanitizeTitle, titleFromIdea, cleanManualTitle } from "./title";
 
 describe("generateTitle", () => {
   it("returns a trimmed, quote-stripped title from the LLM", async () => {
@@ -70,6 +70,22 @@ describe("sanitizeTitle", () => {
   });
   it("does not reject a single # inside a word (e.g. C#)", () => {
     expect(sanitizeTitle("C# Build Helper")).toBe("C# Build Helper");
+  });
+});
+
+describe("cleanManualTitle", () => {
+  it("trims and collapses whitespace", () => {
+    expect(cleanManualTitle("  My   Project  ")).toBe("My Project");
+  });
+  it("returns null for empty/whitespace input", () => {
+    expect(cleanManualTitle("   ")).toBeNull();
+    expect(cleanManualTitle("")).toBeNull();
+  });
+  it("caps an over-long title at 80 chars", () => {
+    expect(cleanManualTitle("y".repeat(200))!.length).toBeLessThanOrEqual(80);
+  });
+  it("keeps a normal user title verbatim", () => {
+    expect(cleanManualTitle("Mission Control")).toBe("Mission Control");
   });
 });
 

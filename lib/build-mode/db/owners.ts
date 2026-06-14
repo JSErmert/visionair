@@ -25,6 +25,30 @@ export async function createOwner(
   return Number(rows[0].id);
 }
 
+export interface OwnerProfile {
+  id: number;
+  email: string | null;
+  name: string | null;
+}
+
+// The logged-in account's display profile (email + optional chosen name).
+export async function getOwnerById(sql: SqlClient, id: number): Promise<OwnerProfile | null> {
+  const rows = (await sql`
+    SELECT id, email, name FROM owners WHERE id = ${id} LIMIT 1`) as {
+    id: number;
+    email: string | null;
+    name: string | null;
+  }[];
+  if (!rows.length) return null;
+  return { id: Number(rows[0].id), email: rows[0].email ?? null, name: rows[0].name ?? null };
+}
+
+// Set (or clear) the account's display name. When present, the UI shows it
+// instead of the email.
+export async function setOwnerName(sql: SqlClient, id: number, name: string | null): Promise<void> {
+  await sql`UPDATE owners SET name = ${name} WHERE id = ${id}`;
+}
+
 // Look up an account by email for login. Returns id + stored hash, or null when
 // no such email exists (or the row has no password set, e.g. the seeded operator).
 export async function findOwnerByEmail(

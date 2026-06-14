@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { cookies } from "next/headers";
 import { verifySession, SESSION_COOKIE, SESSION_MAX_AGE_MS } from "./auth";
 
 // Node-runtime owner check, called inside protected route handlers (not in Edge
@@ -20,4 +21,14 @@ export function getOwnerId(req: NextRequest): number | null {
 // Back-compat boolean gate: any valid session means a logged-in user.
 export function isOwner(req: NextRequest): boolean {
   return getOwnerId(req) !== null;
+}
+
+// Same check for Server Components / Server Actions, which read the cookie via
+// next/headers rather than a NextRequest. Returns the logged-in owner id or null.
+export async function getOwnerIdServer(): Promise<number | null> {
+  const secret = process.env.BUILD_SESSION_SECRET;
+  if (!secret) return null;
+  const store = await cookies();
+  const token = store.get(SESSION_COOKIE)?.value;
+  return verifySession(token, secret, SESSION_MAX_AGE_MS, Date.now());
 }
