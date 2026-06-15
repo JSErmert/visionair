@@ -7,7 +7,7 @@ import { LIMITS } from '@/lib/build-mode/limits'
 import { getOwnerId } from '@/lib/build-mode/server-auth'
 import { getSql } from '@/lib/build-mode/db/client'
 import { createSessionWithV1, updateSessionSummary } from '@/lib/build-mode/db/sessions'
-import { generateTitle } from '@/lib/build-mode/title'
+import { generateTitle, titleFromIdea } from '@/lib/build-mode/title'
 import { summarizeSession } from '@/lib/build-mode/summarize'
 
 export const runtime = 'nodejs'
@@ -118,10 +118,11 @@ export async function POST(req: NextRequest) {
       // itself stays open (anyone can generate a pack), but writing to the
       // library requires login. A DB hiccup must never block the download.
       let saved: { sessionId: number; versionNo: number } | undefined
+      let title: string | undefined
       const ownerId = getOwnerId(req)
       if (ownerId !== null) {
         try {
-          const title = await generateTitle(
+          title = await generateTitle(
             body.idea,
             res.files['docs/context/00-identity.md'] ?? '',
             synthLLM,
@@ -153,11 +154,17 @@ export async function POST(req: NextRequest) {
           console.error('[build] persist failed:', e)
         }
       }
+      // Always hand the client a usable title for the download filename. A
+      // deterministic, no-LLM fallback covers anonymous users (and a failed
+      // title generation above), so the FIRST download is named correctly —
+      // not just the one re-downloaded later from the library.
+      if (!title) title = titleFromIdea(body.idea)
       return Response.json({
         kind: 'pack',
         blueprint: res.blueprint,
         zipBase64: Buffer.from(res.zip).toString('base64'),
         saved,
+        title,
       })
     }
     return Response.json(res)

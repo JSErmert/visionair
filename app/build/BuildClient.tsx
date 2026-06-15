@@ -21,6 +21,13 @@ type Phase = "persona" | "seed" | "interview" | "building" | "blueprint" | "erro
 // proceeds only on Build x Claude Code, so those are the safe defaults.
 const DEFAULT_PROFILE: PersonaProfile = { level: "intermediate", purpose: "build", platform: "claude-code" };
 
+// Name the downloaded pack from the session title (same slug rule the library
+// uses) so the FIRST download is meaningful, not "build-mode-pack.zip".
+function zipName(title: string, versionNo?: number): string {
+  const base = title.replace(/[^a-z0-9]+/gi, "-").replace(/^-+|-+$/g, "").toLowerCase() || "build-pack";
+  return `${base}${versionNo ? `-v${versionNo}` : ""}.zip`;
+}
+
 export default function BuildClient() {
   const [phase, setPhase] = useState<Phase>("persona");
   const [profile, setProfile] = useState<PersonaProfile>(DEFAULT_PROFILE);
@@ -40,6 +47,7 @@ export default function BuildClient() {
   const [url, setUrl] = useState<string | null>(null);
   const [blueprint, setBlueprint] = useState("");
   const [saved, setSaved] = useState<{ sessionId: number; versionNo: number } | null>(null);
+  const [title, setTitle] = useState<string>("");
   const [err, setErr] = useState("");
   // True while an LLM call is in flight (first/next question), so the UI shows a
   // spinner instead of a stutter between screens.
@@ -154,6 +162,7 @@ export default function BuildClient() {
     const blob = new Blob([bytes], { type: "application/zip" });
     setBlueprint(packData.blueprint);
     setSaved(packData.saved ?? null);
+    setTitle(typeof packData.title === "string" ? packData.title : "");
     setUrl(URL.createObjectURL(blob));
     setPhase("blueprint");
     clearProgress();
@@ -433,7 +442,7 @@ export default function BuildClient() {
           <a
             className="inline-flex items-center gap-1.5 rounded-xl bg-foreground px-5 py-3 text-sm font-medium text-background transition hover:opacity-90"
             href={url}
-            download="build-mode-pack.zip"
+            download={zipName(title, saved?.versionNo)}
           >
             Download your build pack →
           </a>
