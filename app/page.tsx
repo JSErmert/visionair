@@ -40,8 +40,8 @@ export default async function Home() {
   const signedIn = account !== null
 
   return (
-    <main className="relative px-6 pb-16 pt-6">
-      <header className="mx-auto mb-8 flex max-w-2xl items-center justify-between sm:mb-12">
+    <main className="relative px-6 pb-10 pt-4">
+      <header className="mx-auto mb-5 flex max-w-2xl items-center justify-between sm:mb-7">
         <span className="text-sm font-medium tracking-wide text-foreground/60">VisionAir</span>
         <div className="flex items-center gap-4">
           <SettingsPanel />
@@ -87,7 +87,7 @@ export default async function Home() {
       </ScreenShell>
 
       {signedIn && (
-        <section className="mx-auto mt-8 max-w-2xl">
+        <section className="mx-auto mt-5 max-w-2xl">
           <div className="mb-3 flex items-center justify-between">
             <p className="text-xs uppercase tracking-wide text-foreground/40">Your library</p>
             {history.length > 0 && (
