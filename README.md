@@ -2,8 +2,8 @@
 
 A guided intelligence environment that helps capable-but-unclear people turn what they already carry into a structured, trustworthy path they can begin building.
 
-**Live (preview):** `<vercel preview URL>`
-**Production:** `<vercel production URL>`
+**Live (preview):** `[<vercel preview URL>](https://visionair-sable.vercel.app/)`
+**Production:** `[<vercel production URL>](https://visionair-sable.vercel.app/)`
 
 ---
 
